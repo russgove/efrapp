@@ -10,18 +10,40 @@ import {
 import * as strings from 'EfrAppWebPartStrings';
 import EfrApp from './components/EfrApp';
 import { IEfrAppProps } from './components/IEfrAppProps';
+import { IEfrAppWebPartProps } from './IEfrAppWebPartProps';
 
-export interface IEfrAppWebPartProps {
-  description: string;
-}
+import pnp from "sp-pnp-js";
+import { RenderListDataParameters } from "sp-pnp-js";
+import UrlQueryParameterCollection from '@microsoft/sp-core-library/lib/url/UrlQueryParameterCollection';
 
 export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartProps> {
+  public onInit(): Promise<void> {
+    return super.onInit().then(_ => {
 
+      pnp.setup({
+        spfxContext: this.context,
+      });
+      return this.loadData();
+    });
+  }
+  public loadData(): Promise<any> {
+    var queryParameters = new UrlQueryParameterCollection(window.location.href);
+    let x: RenderListDataParameters = {
+
+    }
+    // pnp.sp.web.lists.getByTitle(this.properties.taskListName).renderListDataAsStream().then((cool) => {
+    //   debugger;
+    // })
+    return pnp.sp.web.lists.
+      getByTitle(this.properties.taskListName).
+      items.getById(queryParameters["Id"]).get();
+
+  }
   public render(): void {
-    const element: React.ReactElement<IEfrAppProps > = React.createElement(
+    const element: React.ReactElement<IEfrAppProps> = React.createElement(
       EfrApp,
       {
-        description: this.properties.description
+        description: this.properties.documentsListName
       }
     );
 
