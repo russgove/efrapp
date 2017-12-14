@@ -1,0 +1,8 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "version": "1.4.0",
+    "libraryName": "efr-app",
+    "libraryId": "a040f114-6c61-4a04-b537-37fe69fb0ac1",
+    "environment": "spo"
+  }
+}

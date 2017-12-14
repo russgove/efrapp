@@ -1,0 +1,18 @@
+{
+  "$schema": "https://dev.office.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "efr-app-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/efrApp/EfrAppWebPart.js",
+          "manifest": "./src/webparts/efrApp/EfrAppWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "EfrAppWebPartStrings": "lib/webparts/efrApp/loc/{locale}.js"
+  }
+}
