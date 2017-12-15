@@ -20,7 +20,9 @@
     "description": { "default": "EFR App description" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "description": "EFR App"
+      "description": "EFR App2",
+      "taskListName":"PBC Tracking List"
+
     }
   }]
 }

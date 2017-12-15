@@ -1,3 +1,5 @@
+import {PBCTask} from "../model";
 export interface IEfrAppProps {
-  description: string;
+  task: PBCTask;
+  files:Array<any>;
 }
