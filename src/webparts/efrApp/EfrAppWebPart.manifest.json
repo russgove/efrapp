@@ -21,7 +21,7 @@
     "officeFabricIconFontName": "Page",
     "properties": {
       "description": "EFR App2",
-      "taskListName":"PBC Tracking List"
+      "taskListName":"PBCTasks"
 
     }
   }]
