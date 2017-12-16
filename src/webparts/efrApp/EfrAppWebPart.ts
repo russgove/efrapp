@@ -17,7 +17,7 @@ import { RenderListDataParameters } from "sp-pnp-js";
 import UrlQueryParameterCollection from "@microsoft/sp-core-library/lib/url/UrlQueryParameterCollection";
 import { debounce } from "@microsoft/sp-lodash-subset";
 import CultureInfo from "@microsoft/sp-page-context/lib/CultureInfo";
-import {map} from "lodash";
+import { map } from "lodash";
 import { Document } from "../../../lib/webparts/efrApp/model";
 export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartProps> {
   public onInit(): Promise<void> {
@@ -35,8 +35,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     const itemid = parseInt(queryParameters.getValue("ID"));
 
     //    this.context.pageContext.list.id
-    let sx: CultureInfo = this.context.pageContext.cultureInfo;
-    debugger;
+
     return pnp.sp.web.lists.
       getByTitle(this.properties.taskListName).
       items.getById(itemid).getAs<PBCTask>()
@@ -47,20 +46,20 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
         let docfields = "Id,Title,File/ServerRelativeUrl,File/Length,File/Name,File/MajorVersion,File/MinorVersion";
         let docexpands = "File";
         return pnp.sp.web.lists.getByTitle(libraryName).items.expand(docexpands)
-        .select(docfields).get().then((files) => {
-          debugger;
-          this.properties.files = map(files,(f)=>{
-            let doc:Document= new Document();
-            doc.id=f["Id"];
-            doc.title=f["Title"];
-            doc.serverRalativeUrl=f["File"]["ServerRelativeUrl"];
-            return doc;
-          });
-          return;
+          .select(docfields).get().then((files) => {
+           
+            this.properties.files = map(files, (f) => {
+              let doc: Document = new Document();
+              doc.id = f["Id"];
+              doc.title = f["Title"];
+              doc.serverRalativeUrl = f["File"]["ServerRelativeUrl"];
+              return doc;
+            });
+            return;
 
-        }).catch((e) => {
-          debugger;
-        });
+          }).catch((e) => {
+            debugger;
+          });
 
       }).catch((err) => {
         debugger;
@@ -77,17 +76,18 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
  * 
  * @memberof TrFormWebPart
  */
-  private uploadFile(file, Library: string, Reference: string): Promise<any> {
-    debugger;
+  private uploadFile(file, Library: string, filePrefix: string): Promise<any> {
+ 
+    const fileName:string=filePrefix+"--"+file.name;
     if (file.size <= 10485760) {
       // small upload
-      return pnp.sp.web.lists.getByTitle(Library).rootFolder.files.add(file.name, file, true)
+      return pnp.sp.web.lists.getByTitle(Library).rootFolder.files.add(fileName, file, true)
         .then((results) => {
-          debugger;
+         
           // so we'll stor all items in a single library with a  Reference to th epbcTask
           return results.file.getItem().then(item => {
-            return item.update({ "Reference": Reference, Title: file.name }).then((r) => {
-              debugger;
+            return item.update({ Title: fileName }).then((r) => {
+         
               return;
             }).catch((err) => {
               debugger;
@@ -100,17 +100,17 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
           console.log(error);
         });
     } else {
-      debugger;
+    
 
       return pnp.sp.web.lists.getByTitle(this.properties.documentsListName).rootFolder.files
-        .addChunked(file.name, file, data => {
+        .addChunked(fileName, file, data => {
           console.log({ data: data, message: "progress" });
         }, true)
         .then((results) => {
-          debugger;
+        
           return results.file.getItem().then(item => {
-            return item.update({ "TRId": Reference, Title: file.name }).then((r) => {
-              debugger;
+            return item.update({  Title: fileName }).then((r) => {
+         
               return;
             }).catch((err) => {
               debugger;
@@ -133,9 +133,9 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
         files: this.properties.files,
         uploadFile: this.uploadFile.bind(this),
         cultureInfo: this.context.pageContext.cultureInfo,
-        fetchDocumentWopiFrameURL:this.fetchDocumentWopiFrameURL.bind(this),
-        documentIframeWidth:200,
-        documentIframeHeight:200
+        fetchDocumentWopiFrameURL: this.fetchDocumentWopiFrameURL.bind(this),
+        documentIframeWidth: 200,
+        documentIframeHeight: 200
       }
     );
 
@@ -151,9 +151,10 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
    * 
    * @memberof TrFormWebPart
    */
-  public fetchDocumentWopiFrameURL(id: number, mode: number,library:string): Promise<string> {
-    let fields = "*";
+  public fetchDocumentWopiFrameURL(id: number, mode: number, library: string): Promise<string> {
+console.log("In fetchDocumentWopiFrameURL");
     return pnp.sp.web.lists.getByTitle(library).items.getById(id).getWopiFrameUrl(mode).then((item) => {
+      console.log("fetchDocumentWopiFrameURL returning "+ item);
       return item;
     });
   }

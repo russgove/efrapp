@@ -25,23 +25,25 @@ import Dropzone from 'react-dropzone';
 export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> {
   public constructor() {
     super();
+    console.log("in Construrctor");
     this.state = {
       documentCalloutIframeUrl: "",
-
-
-
     }
   }
   public createSummaryMarkup(html) {
+    console.log("in createSummaryMarkup");
     return { __html: html };
   }
   private onDrop(acceptedFiles, rejectedFiles) {
+    console.log("in onDrop");
     debugger;
     acceptedFiles.forEach(file => {
-      this.props.uploadFile(file, this.props.task.EFRLibrary);
+      this.props.uploadFile(file, this.props.task.EFRLibrary, this.props.task.Title);
     });
   }
   public getDateString(dateString: string): string {
+    console.log("in getDateString");
+
     var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     let year = parseInt(dateString.substr(0, 4));
     let month = parseInt(dateString.substr(5, 2));
@@ -51,9 +53,10 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
 
   }
   public documentRowMouseEnter(document: Document, e: any) {
-debugger;
+    console.log("in documentRowMouseEnter");
+
     // mode passed to fetchDocumentWopiFrameURL: 0: view, 1: edit, 2: mobileView, 3: interactivePreview
-    this.props.fetchDocumentWopiFrameURL(document.id, 3,this.props.task.EFRLibrary).then(url => {
+    this.props.fetchDocumentWopiFrameURL(document.id, 3, this.props.task.EFRLibrary).then(url => {
       if (!url || url === "") {
         url = document.serverRalativeUrl;
       }
@@ -70,6 +73,7 @@ debugger;
     });
   }
   public documentRowMouseOut(item: Document, e: any) {
+    console.log("in documentRowMouseOut");
 
     // this.state.documentCalloutTarget = null;
     // this.state.documentCalloutVisible = false;
@@ -77,27 +81,27 @@ debugger;
     console.log("mouse exit for " + item.title);
   }
   public editDocument(document: Document): void {
-    
-        // mode: 0: view, 1: edit, 2: mobileView, 3: interactivePreview
-        this.props.fetchDocumentWopiFrameURL(document.id, 0,this.props.task.EFRLibrary).then(url => {
-    
-          if (!url || url === "") {
-            window.open(document.serverRalativeUrl, "_blank");
-          } else {
-            window.open(url, "_blank");
-          }
-          //    this.state.wopiFrameUrl=url;
-          //  this.setState(this.state);
-          // window.location.href=url;
-    
-        });
-    
-      }
-  public render(): React.ReactElement<IEfrAppProps> {
+    console.log("in editDocument");
+
     debugger;
 
-    ;
+    // mode: 0: view, 1: edit, 2: mobileView, 3: interactivePreview
+    this.props.fetchDocumentWopiFrameURL(document.id, 1, this.props.task.EFRLibrary).then(url => {
+      console.log("wopi frame url is "+url)
+      if (!url || url === "") {
+        window.open(document.serverRalativeUrl, "_blank");
+      } else {
+        window.open(url, "_blank");
+      }
+      //    this.state.wopiFrameUrl=url;
+      //  this.setState(this.state);
+      // window.location.href=url;
 
+    });
+
+  }
+  public render(): React.ReactElement<IEfrAppProps> {
+    console.log("in render");
     return (
       <div className={styles.efrApp}>
         <div className={styles.headerArea}>
@@ -147,10 +151,10 @@ debugger;
                 {
                   key: "Edit", name: "", fieldName: "Title", minWidth: 20,
                   onRender: (item) => <div>
-                    <i onClick={(e) => { this.editDocument(item); }}
-                                            className="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-  
-                     </div>
+                    <i onClickCapture={(e) => { debugger; this.editDocument(item);return true; }}
+                      className="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+
+                  </div>
                 },
                 { key: "title", name: "Request #", fieldName: "title", minWidth: 1, maxWidth: 300 },
 

@@ -22,7 +22,7 @@ export class PBCTask{
  
 }
 export class Document{
-    title:string;
-    id:number;
-    serverRalativeUrl:string;
+  public  title:string;
+  public id:number;
+  public serverRalativeUrl:string;
 }
