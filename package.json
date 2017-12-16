@@ -18,6 +18,7 @@
     "@types/react": "15.6.6",
     "@types/react-dom": "15.5.6",
     "@types/webpack-env": ">=1.12.1 <1.14.0",
+    "lodash": "^4.17.4",
     "office-ui-fabric-react": "^5.33.0",
     "react": "15.6.2",
     "react-dom": "15.6.2",

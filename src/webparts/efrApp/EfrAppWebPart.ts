@@ -12,13 +12,13 @@ import * as strings from "EfrAppWebPartStrings";
 import EfrApp from "./components/EfrApp";
 import { IEfrAppProps } from "./components/IEfrAppProps";
 import { IEfrAppWebPartProps } from "./IEfrAppWebPartProps";
-
 import pnp from "sp-pnp-js";
 import { RenderListDataParameters } from "sp-pnp-js";
 import UrlQueryParameterCollection from "@microsoft/sp-core-library/lib/url/UrlQueryParameterCollection";
 import { debounce } from "@microsoft/sp-lodash-subset";
 import CultureInfo from "@microsoft/sp-page-context/lib/CultureInfo";
-
+import {map} from "lodash";
+import { Document } from "../../../lib/webparts/efrApp/model";
 export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartProps> {
   public onInit(): Promise<void> {
     return super.onInit().then(_ => {
@@ -44,9 +44,18 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
 
         this.properties.task = task;
         const libraryName = task.EFRLibrary;
-        return pnp.sp.web.lists.getByTitle(libraryName).items.get().then((files) => {
-
-          this.properties.files = files;
+        let docfields = "Id,Title,File/ServerRelativeUrl,File/Length,File/Name,File/MajorVersion,File/MinorVersion";
+        let docexpands = "File";
+        return pnp.sp.web.lists.getByTitle(libraryName).items.expand(docexpands)
+        .select(docfields).get().then((files) => {
+          debugger;
+          this.properties.files = map(files,(f)=>{
+            let doc:Document= new Document();
+            doc.id=f["Id"];
+            doc.title=f["Title"];
+            doc.serverRalativeUrl=f["File"]["ServerRelativeUrl"];
+            return doc;
+          });
           return;
 
         }).catch((e) => {
@@ -123,13 +132,31 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
         task: this.properties.task,
         files: this.properties.files,
         uploadFile: this.uploadFile.bind(this),
-        cultureInfo: this.context.pageContext.cultureInfo
+        cultureInfo: this.context.pageContext.cultureInfo,
+        fetchDocumentWopiFrameURL:this.fetchDocumentWopiFrameURL.bind(this),
+        documentIframeWidth:200,
+        documentIframeHeight:200
       }
     );
 
     ReactDom.render(element, this.domElement);
   }
 
+  /**
+   * A method to fetch the WopiFrameURL for a Document in the TR Documents library.
+   * This url is used to display the document in the iframs
+   * @param {number} id the listitem id of the document in the TR Document Libtry
+   * @param {number} mode  The displayMode in the retuned url (display, edit, etc.)
+   * @returns {Promise<string>} The url used to display the document in the iframe
+   * 
+   * @memberof TrFormWebPart
+   */
+  public fetchDocumentWopiFrameURL(id: number, mode: number,library:string): Promise<string> {
+    let fields = "*";
+    return pnp.sp.web.lists.getByTitle(library).items.getById(id).getWopiFrameUrl(mode).then((item) => {
+      return item;
+    });
+  }
   protected get dataVersion(): Version {
     return Version.parse("1.0");
   }

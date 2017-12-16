@@ -19,5 +19,10 @@ export class PBCTask{
     public CompletedByUser:boolean;// the user clicked the complete button, indicating they were done uploading files
     public VerifiedByAdmin:boolean;//  the admin clicked the verified button indicating the files are good. We should stop sening remonders
     public DoNotSendReminders:boolean; // admin can flip this to have reminders not sent out
-    
+ 
+}
+export class Document{
+    title:string;
+    id:number;
+    serverRalativeUrl:string;
 }
