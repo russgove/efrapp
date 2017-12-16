@@ -21,6 +21,7 @@
     "office-ui-fabric-react": "^5.33.0",
     "react": "15.6.2",
     "react-dom": "15.6.2",
+    "react-dropzone": "^4.2.3",
     "sp-pnp-js": "^3.0.2"
   },
   "devDependencies": {

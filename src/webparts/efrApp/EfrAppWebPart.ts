@@ -32,25 +32,23 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
   public loadData(): Promise<any> {
     var queryParameters: UrlQueryParameterCollection = new UrlQueryParameterCollection(window.location.href);
     const itemid = parseInt(queryParameters.getValue("ID"));
-    let rldParams: RenderListDataParameters = {
-
-    }
+    
 //    this.context.pageContext.list.id
     return pnp.sp.web.lists.
       getByTitle(this.properties.taskListName).
       items.getById(itemid).getAs<PBCTask>()
       .then((task) => {
-        debugger;
+ 
         this.properties.task = task;
         const libraryName = task.EFRLibrary;
        return pnp.sp.web.lists.getByTitle(libraryName).items.get().then((files) => {
-          debugger;
+         
           this.properties.files = files;
           return;
 
         }).catch((e) => {
           debugger;
-        })
+        });
 
       }).catch((err) => {
         debugger;
