@@ -30,7 +30,19 @@ export default class EfrApp extends React.Component<IEfrAppProps, {}> {
            this.props.uploadFile(file, this.props.task.EFRLibrary);
     });
   }
+  public getDateString( dateString:string):string{
+    var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    let year =parseInt(dateString.substr(0,4));
+    let month =parseInt(dateString.substr(5,2));
+    let day =parseInt(dateString.substr(8,2));
+    return new Date(year,month,day)
+    .toLocaleDateString(this.props.cultureInfo.currentCultureName,options)
+    
+  }
   public render(): React.ReactElement<IEfrAppProps> {
+    debugger;
+  
+;
 
     return (
       <div className={styles.efrApp}>
@@ -43,7 +55,13 @@ export default class EfrApp extends React.Component<IEfrAppProps, {}> {
             value={this.props.task.Title} />
 
 
-          <TextField className={styles.inline} label="DueDate" disabled={true} style={{ width: 180 }} value={this.props.task.EFRDueDate.toLocaleString()} />
+          <TextField 
+          className={styles.inline}
+           label="DueDate" 
+           disabled={true} 
+           style={{ width: 180 }} 
+           value={this.getDateString(this.props.task.EFRDueDate)}
+            />
 
 
           <TextField label="Library" className={styles.inline} disabled={true} style={{ width: 120 }} value={this.props.task.EFRLibrary} />
@@ -56,7 +74,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, {}> {
 
           <Label >Information Requested: </Label>
           <div dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRInformationRequested)} />
-          <Dropzone onDrop={this.onDrop.bind(this)} >
+          <Dropzone  onDrop={this.onDrop.bind(this)} >
             <div>
               Drag and drop files here to upload
           </div>

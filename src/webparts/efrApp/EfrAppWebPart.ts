@@ -17,6 +17,7 @@ import pnp from "sp-pnp-js";
 import { RenderListDataParameters } from "sp-pnp-js";
 import UrlQueryParameterCollection from "@microsoft/sp-core-library/lib/url/UrlQueryParameterCollection";
 import { debounce } from "@microsoft/sp-lodash-subset";
+import CultureInfo from "@microsoft/sp-page-context/lib/CultureInfo";
 
 export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartProps> {
   public onInit(): Promise<void> {
@@ -34,6 +35,8 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     const itemid = parseInt(queryParameters.getValue("ID"));
 
     //    this.context.pageContext.list.id
+    let sx: CultureInfo = this.context.pageContext.cultureInfo;
+    debugger;
     return pnp.sp.web.lists.
       getByTitle(this.properties.taskListName).
       items.getById(itemid).getAs<PBCTask>()
@@ -72,7 +75,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       return pnp.sp.web.lists.getByTitle(Library).rootFolder.files.add(file.name, file, true)
         .then((results) => {
           debugger;
-         // so we'll stor all items in a single library with a  Reference to th epbcTask
+          // so we'll stor all items in a single library with a  Reference to th epbcTask
           return results.file.getItem().then(item => {
             return item.update({ "Reference": Reference, Title: file.name }).then((r) => {
               debugger;
@@ -120,7 +123,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
         task: this.properties.task,
         files: this.properties.files,
         uploadFile: this.uploadFile.bind(this),
-
+        cultureInfo: this.context.pageContext.cultureInfo
       }
     );
 
