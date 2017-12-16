@@ -27,20 +27,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, {}> {
   private onDrop(acceptedFiles, rejectedFiles) {
     debugger;
     acceptedFiles.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const fileAsBinaryString = reader.result;
-        // do whatever you want with the file content
-      };
-      reader.onabort = () => console.log('file reading was aborted');
-      reader.onerror = () => console.log('file reading has failed');
-
-      reader.readAsBinaryString(file);
-
-      this.props.uploadFile(file, 7);
-
-
-
+           this.props.uploadFile(file, this.props.task.EFRLibrary);
     });
   }
   public render(): React.ReactElement<IEfrAppProps> {
