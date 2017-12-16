@@ -55,12 +55,87 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       });
 
   }
+    /**
+   * Uploads a file to the TR DOcument library an associates it with the specified TR
+   * 
+   * @private
+   * @param {any} file The file to upload
+   * @param {any} trId  The ID of the TR to associate the file with
+   * @returns {Promise<any>} 
+   * 
+   * @memberof TrFormWebPart
+   */
+  private uploadFile(file, trId): Promise<any> {
+    debugger;
+    if (file.size <= 10485760) {
+      // small upload
+      return pnp.sp.web.lists.getByTitle(this.properties.documentsListName).rootFolder.files.add(file.name, file, true)
+        .then((results) => {
+          debugger;
+          //return pnp.sp.web.getFileByServerRelativeUrl(results.data.ServerRelativeUrl).getItem<{ Id: number, Title: string, Modified: Date }>("Id", "Title", "Modified").then((item) => {
+          return results.file.getItem().then(item => {
+            return item.update({ "TRId": trId, Title: file.name }).then((r) => {
+              debugger;
+              return;
+            }).catch((err) => {
+              debugger;
+              console.log(err);
+            });
+          });
+          // return pnp.sp.web.getFileByServerRelativeUrl(results.data.ServerRelativeUrl).getItem().then((item) => {
+          //   debugger;
+          //   const itemID = parseInt(item["Id"]);
+          //   return pnp.sp.web.lists.getByTitle(this.properties.trDocumentsListName).items.getById(itemID).
+          //     update({ "TRId": trId, Title: file.name })
+          //     .then((response) => {
+
+          //       return;
+          //     }).catch((error) => {
+
+          //     });
+          // }).catch((error) => {
+          //   debugger;
+          //   console.log(error);
+          // });
+
+        }).catch((error) => {
+          console.log(error);
+        });
+    } else {
+      // large upload// not tested yet
+      //  alert("large file support  not impletemented");
+      debugger;
+
+      return pnp.sp.web.lists.getByTitle(this.properties.documentsListName).rootFolder.files
+        .addChunked(file.name, file, data => {
+          console.log({ data: data, message: "progress" });
+        }, true)
+        .then((results) => {
+          debugger;
+          return results.file.getItem().then(item => {
+            return item.update({ "TRId": trId, Title: file.name }).then((r) => {
+              debugger;
+              return;
+            }).catch((err) => {
+              debugger;
+              console.log(err);
+            });
+          });
+
+        })
+        .catch((error) => {
+
+          console.log(error);
+        });
+    }
+  }
   public render(): void {
     const element: React.ReactElement<IEfrAppProps> = React.createElement(
       EfrApp,
       {
         task: this.properties.task,
-        files:this.properties.files
+        files:this.properties.files,
+        uploadFile: this.uploadFile.bind(this),
 
       }
     );
