@@ -2,6 +2,8 @@ import * as React from "react";
 import { PBCTask } from "./model";
 import * as ReactDom from "react-dom";
 import { Version } from "@microsoft/sp-core-library";
+import { SearchQuery, SearchResults, SortDirection, EmailProperties, Items } from "sp-pnp-js";
+
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
@@ -33,33 +35,17 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
   public loadData(): Promise<any> {
     var queryParameters: UrlQueryParameterCollection = new UrlQueryParameterCollection(window.location.href);
     const itemid = parseInt(queryParameters.getValue("ID"));
-
-    //    this.context.pageContext.list.id
-
-    return pnp.sp.web.lists.
+   return pnp.sp.web.lists.
       getByTitle(this.properties.taskListName).
       items.getById(itemid).getAs<PBCTask>()
       .then((task) => {
 
         this.properties.task = task;
         const libraryName = task.EFRLibrary;
-        let docfields = "Id,Title,File/ServerRelativeUrl,File/Length,File/Name,File/MajorVersion,File/MinorVersion";
-        let docexpands = "File";
-        return pnp.sp.web.lists.getByTitle(libraryName).items.expand(docexpands)
-          .select(docfields).get().then((files) => {
-           
-            this.properties.files = map(files, (f) => {
-              let doc: Document = new Document();
-              doc.id = f["Id"];
-              doc.title = f["Title"];
-              doc.serverRalativeUrl = f["File"]["ServerRelativeUrl"];
-              return doc;
-            });
-            return;
-
-          }).catch((e) => {
-            debugger;
-          });
+        return this.getDocuments(libraryName).then((dox) => {
+          this.properties.documents = dox;
+          return;
+        });
 
       }).catch((err) => {
         debugger;
@@ -77,17 +63,17 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
  * @memberof TrFormWebPart
  */
   private uploadFile(file, Library: string, filePrefix: string): Promise<any> {
- 
-    const fileName:string=filePrefix+"--"+file.name;
+
+    const fileName: string = filePrefix + "--" + file.name;
     if (file.size <= 10485760) {
       // small upload
       return pnp.sp.web.lists.getByTitle(Library).rootFolder.files.add(fileName, file, true)
         .then((results) => {
-         
+
           // so we'll stor all items in a single library with a  Reference to th epbcTask
           return results.file.getItem().then(item => {
             return item.update({ Title: fileName }).then((r) => {
-         
+
               return;
             }).catch((err) => {
               debugger;
@@ -100,17 +86,17 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
           console.log(error);
         });
     } else {
-    
+
 
       return pnp.sp.web.lists.getByTitle(this.properties.documentsListName).rootFolder.files
         .addChunked(fileName, file, data => {
           console.log({ data: data, message: "progress" });
         }, true)
         .then((results) => {
-        
+
           return results.file.getItem().then(item => {
-            return item.update({  Title: fileName }).then((r) => {
-         
+            return item.update({ Title: fileName }).then((r) => {
+
               return;
             }).catch((err) => {
               debugger;
@@ -130,16 +116,41 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       EfrApp,
       {
         task: this.properties.task,
-        files: this.properties.files,
+        documents: this.properties.documents,
         uploadFile: this.uploadFile.bind(this),
         cultureInfo: this.context.pageContext.cultureInfo,
         fetchDocumentWopiFrameURL: this.fetchDocumentWopiFrameURL.bind(this),
+        getDocuments: this.getDocuments.bind(this),
         documentIframeWidth: 200,
         documentIframeHeight: 200
       }
     );
 
     ReactDom.render(element, this.domElement);
+  }
+  public getDocuments(library: string, batch?: any): Promise<Array<Document>> {
+    let docfields = "Id,Title,File/ServerRelativeUrl,File/Length,File/Name,File/MajorVersion,File/MinorVersion";
+    let docexpands = "File";
+
+    let command: Items = pnp.sp.web.lists
+      .getByTitle(library)
+      .items
+      .expand(docexpands)
+      .select(docfields);
+    if (batch) {
+      command.inBatch(batch);
+    }
+    return command.get().then((items) => {
+      let docs: Array<Document> = map(items, (f) => {
+        let doc: Document = new Document();
+        doc.id = f["Id"];
+        doc.title = f["Title"];
+        doc.serverRalativeUrl = f["File"]["ServerRelativeUrl"];
+        return doc;
+      });
+      return docs;
+    });
+
   }
 
   /**
@@ -152,9 +163,9 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
    * @memberof TrFormWebPart
    */
   public fetchDocumentWopiFrameURL(id: number, mode: number, library: string): Promise<string> {
-console.log("In fetchDocumentWopiFrameURL");
+    console.log("In fetchDocumentWopiFrameURL");
     return pnp.sp.web.lists.getByTitle(library).items.getById(id).getWopiFrameUrl(mode).then((item) => {
-      console.log("fetchDocumentWopiFrameURL returning "+ item);
+      console.log("fetchDocumentWopiFrameURL returning " + item);
       return item;
     });
   }

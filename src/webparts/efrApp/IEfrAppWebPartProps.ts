@@ -4,5 +4,5 @@ export interface IEfrAppWebPartProps {
     taskListName: string;
     documentsListName: string;
     task:PBCTask;
-    files:Array<Document>;
+    documents:Array<Document>;
 }
