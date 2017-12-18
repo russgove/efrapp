@@ -126,14 +126,11 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     return (
       <div className={styles.efrApp}>
         <div className={styles.headerArea}>
-
           <TextField label="Referenece"
             className={styles.inline}
             style={{ width: 100 }}
             disabled={true}
             value={this.props.task.Title} />
-
-
           <TextField
             className={styles.inline}
             label="DueDate"
@@ -141,8 +138,6 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
             style={{ width: 180 }}
             value={this.getDateString(this.props.task.EFRDueDate)}
           />
-
-
           <TextField label="Library" className={styles.inline} disabled={true} style={{ width: 120 }} value={this.props.task.EFRLibrary} />
 
 
@@ -151,8 +146,14 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
 
           <TextField className={styles.inline} disabled={true} style={{ width: 80 }} value={this.props.task.AssignedTo} />
         </div >
+        
         <Label >Information Requested: </Label>
-        <div dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRInformationRequested)} />
+        <div className={styles.informationRequested}
+         dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRInformationRequested)} />
+          <Label >Please upload the files containing the information requested.
+             You can drag and drop file(s) into the area shaded in blue below, or click the 
+             'Choose File' button to select the file(s). Files you upload will be prefixed
+             with the reference {[this.props.task.Title}}   </Label>
         <Dropzone className={styles.dropzone} onDrop={this.onDrop.bind(this)} disableClick={true} >
           <div>
             Drag and drop files here to upload
@@ -177,7 +178,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
 
                   </div>
                 },
-                { key: "title", name: "Request #", fieldName: "title", minWidth: 1, maxWidth: 300 },
+                { key: "title", name: "File Name", fieldName: "title", minWidth: 1, maxWidth: 500 , },
 
               ]}
             />
