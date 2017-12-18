@@ -23,6 +23,8 @@ import { PBCTask, Document } from "../model";
 import Dropzone from 'react-dropzone';
 
 export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> {
+  private validBrandIcons = " accdb csv docx dotx mpp mpt odp ods odt one onepkg onetoc potx ppsx pptx pub vsdx vssx vstx xls xlsx xltx xsn ";
+
   public constructor(props: IEfrAppProps) {
     super();
     console.log("in Construrctor");
@@ -38,15 +40,15 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
   private onDrop(acceptedFiles, rejectedFiles) {
     console.log("in onDrop");
     debugger;
-    let promises :Array<Promise<any>>=[];
+    let promises: Array<Promise<any>> = [];
     acceptedFiles.forEach(file => {
       promises.push(this.props.uploadFile(file, this.props.task.EFRLibrary, this.props.task.Title));
     });
-    Promise.all(promises).then((x)=>{
+    Promise.all(promises).then((x) => {
       this.props.getDocuments(this.props.task.EFRLibrary).then((dox) => {
         this.setState((current) => ({ ...current, documents: dox }));
       });
-  
+
     });
 
   }
@@ -77,7 +79,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     console.log("in documentRowMouseEnter");
 
     // mode passed to fetchDocumentWopiFrameURL: 0: view, 1: edit, 2: mobileView, 3: interactivePreview
-    this.props.fetchDocumentWopiFrameURL(document.id, 3, this.props.task.EFRLibrary).then(url => {
+    this.props.fetchDocumentWopiFrameURL(document.id, 0, this.props.task.EFRLibrary).then(url => {
       if (!url || url === "") {
         url = document.serverRalativeUrl;
       }
@@ -107,7 +109,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     debugger;
 
     // mode: 0: view, 1: edit, 2: mobileView, 3: interactivePreview
-    this.props.fetchDocumentWopiFrameURL(document.id, 1, this.props.task.EFRLibrary).then(url => {
+    this.props.fetchDocumentWopiFrameURL(document.id, 0, this.props.task.EFRLibrary).then(url => {
       console.log("wopi frame url is " + url)
       if (!url || url === "") {
         window.open(document.serverRalativeUrl, "_blank");
@@ -121,44 +123,112 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     });
 
   }
+  public renderItemTitle(item?: any, index?: number, column?: IColumn): any {
+    debugger;
+    let extension = item.title.split('.').pop();
+    let classname = "";
+    if (this.validBrandIcons.indexOf(" " + extension + " ") !== -1) {
+      classname += " ms-Icon ms-BrandIcon--" + extension + " ms-BrandIcon--icon16 ";
+    }
+    else {
+      //classname += " ms-Icon ms-Icon--TextDocument " + styles.themecolor;
+      classname += " ms-Icon ms-Icon--TextDocument ";
+    }
+
+
+    return (
+      <div>
+        <div className={classname} /> &nbsp;
+        <a href="#"
+          onClickCapture={(e) => { debugger; e.preventDefault(); this.editDocument(item); return false; }}>{item.title}</a>
+      </div>);
+  }
   public render(): React.ReactElement<IEfrAppProps> {
     console.log("in render");
     return (
       <div className={styles.efrApp}>
         <div className={styles.headerArea}>
-          <TextField label="Referenece"
-            className={styles.inline}
-            style={{ width: 100 }}
-            disabled={true}
-            value={this.props.task.Title} />
-          <TextField
-            className={styles.inline}
-            label="DueDate"
-            disabled={true}
-            style={{ width: 180 }}
-            value={this.getDateString(this.props.task.EFRDueDate)}
-          />
-          <TextField label="Library" className={styles.inline} disabled={true} style={{ width: 120 }} value={this.props.task.EFRLibrary} />
+          <table>
+            <tr>
+              <td>
+                <Label>Reference:</Label>
+              </td>
+              <td>
+                <TextField label=""
+
+                  disabled={true}
+                  value={this.props.task.Title} />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <Label>Due Date:</Label>
+              </td>
+              <td>
+                <TextField label=""
 
 
-          <TextField label="Period" className={styles.inline} disabled={true} style={{ width: 80 }} value={this.props.task.EFRPeriod} />
+                  disabled={true}
+                  value={this.getDateString(this.props.task.EFRDueDate)} />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <Label>Period:</Label>
+              </td>
+              <td>
+                <TextField label=""
 
 
-          <TextField className={styles.inline} disabled={true} style={{ width: 80 }} value={this.props.task.AssignedTo} />
+                  disabled={true}
+                  value={this.props.task.EFRPeriod} />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <Label>Library:</Label>
+              </td>
+              <td>
+                <TextField label=""
+
+
+                  disabled={true}
+                  value={this.props.task.EFRLibrary} />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <Label>Assigned To:</Label>
+              </td>
+              <td>
+                <TextField label=""
+
+
+                  disabled={true}
+                  value={this.props.task.AssignedTo} />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <Label>Information Requested:</Label>
+              </td>
+              <td>
+                <div className={styles.informationRequested}
+                  dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRInformationRequested)} />
+              </td>
+            </tr>
+          </table>
         </div >
-        
-        <Label >Information Requested: </Label>
-        <div className={styles.informationRequested}
-         dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRInformationRequested)} />
-          <Label >Please upload the files containing the information requested.
-             You can drag and drop file(s) into the area shaded in blue below, or click the 
-             'Choose File' button to select the file(s). Files you upload will be prefixed
-             with the reference {[this.props.task.Title}}   </Label>
+
+        <Label className={styles.uploadInstructions} >Please upload the files containing the information requested on or before the Due Date above.
+             You can drag and drop file(s) into the area shaded in blue below, or click the
+             'Choose File' button to select the file(s). Uploaded files  will be automatically prefixed
+             with the reference {this.props.task.Title}   </Label>
         <Dropzone className={styles.dropzone} onDrop={this.onDrop.bind(this)} disableClick={true} >
           <div>
-            Drag and drop files here to upload
+            Drag and drop files here to upload, or click Choose File below. Click on a file to view it.
           </div>
-          <div style={{ float: "left" }}>
+          {/* <div style={{ float: "left" }}> */}
             <DetailsList
               layoutMode={DetailsListLayoutMode.fixedColumns}
               items={this.state.documents}
@@ -171,25 +241,21 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
               selectionMode={SelectionMode.none}
               columns={[
                 {
-                  key: "Edit", name: "", fieldName: "Title", minWidth: 20,
-                  onRender: (item) => <div>
-                    <i onClickCapture={(e) => { debugger; e.preventDefault(); this.editDocument(item); return false; }}
-                      className="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-
-                  </div>
+                  key: "title", name: "File Name",
+                  fieldName: "title", minWidth: 1, maxWidth: 500,
+                  onRender: this.renderItemTitle.bind(this)
                 },
-                { key: "title", name: "File Name", fieldName: "title", minWidth: 1, maxWidth: 500 , },
 
               ]}
             />
             <input type="file" id="uploadfile" onChange={e => { this.uploadFile(e); }} />
-          </div>
+          {/* </div>
           <div style={{ float: "right" }}>
             <DocumentIframe src={this.state.documentCalloutIframeUrl}
               height={this.props.documentIframeHeight}
               width={this.props.documentIframeWidth} />
           </div>
-          <div style={{ clear: "both" }}></div>
+          <div style={{ clear: "both" }}></div> */}
 
         </Dropzone>
 

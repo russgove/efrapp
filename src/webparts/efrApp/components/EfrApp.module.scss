@@ -2,9 +2,11 @@
 
 .efrApp {
   .headerArea{
-    .inline{
-      display: inline-block;
-     }  
+   :global {
+     .ms-Label{
+       text-align: right
+     }
+   }
   }
   .dropzone{
  
@@ -16,8 +18,15 @@
     border-radius: 5px;
     background-color: rgba(173, 230, 225, 0.116)
   }
+  .uploadInstructions{
+    font-style: italic;
+    font-size: large;
+   font-weight: bold;
+    
+  }
   .informationRequested{
     background-color: #f4f4f4;
+    font-weight: bold;
   }
   }
    
