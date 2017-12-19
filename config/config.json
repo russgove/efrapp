@@ -9,10 +9,19 @@
           "manifest": "./src/webparts/efrApp/EfrAppWebPart.manifest.json"
         }
       ]
+    },
+    "efr-admin-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/efrAdmin/EfrAdminWebPart.js",
+          "manifest": "./src/webparts/efrAdmin/EfrAdminWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},
   "localizedResources": {
-    "EfrAppWebPartStrings": "lib/webparts/efrApp/loc/{locale}.js"
+    "EfrAppWebPartStrings": "lib/webparts/efrApp/loc/{locale}.js",
+    "EfrAdminWebPartStrings": "lib/webparts/efrAdmin/loc/{locale}.js"
   }
 }
