@@ -20,7 +20,7 @@ import UrlQueryParameterCollection from "@microsoft/sp-core-library/lib/url/UrlQ
 import { debounce } from "@microsoft/sp-lodash-subset";
 import CultureInfo from "@microsoft/sp-page-context/lib/CultureInfo";
 import { map } from "lodash";
-import { Document } from "../../../lib/webparts/efrApp/model";
+import { Document } from "./model";
 export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartProps> {
   public onInit(): Promise<void> {
     return super.onInit().then(_ => {
@@ -35,9 +35,10 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
   public loadData(): Promise<any> {
     var queryParameters: UrlQueryParameterCollection = new UrlQueryParameterCollection(window.location.href);
     const itemid = parseInt(queryParameters.getValue("ID"));
-   return pnp.sp.web.lists.
+    return pnp.sp.web.lists.
       getByTitle(this.properties.taskListName).
-      items.getById(itemid).getAs<PBCTask>()
+      items.getById(itemid).expand("EFRAssignedTo")
+      .select("Title,EFRLibrary,EFRInformationRequested,EFRPeriod,EFRDueDate,EFRAssignedTo/Title").getAs<PBCTask>()
       .then((task) => {
 
         this.properties.task = task;

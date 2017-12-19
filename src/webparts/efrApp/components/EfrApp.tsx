@@ -123,6 +123,13 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     });
 
   }
+  public getAssignees(assignees:Array<{}>):string{
+    let result ="";
+    for (let assignee of assignees){
+      result+=assignee["Title"]+";  ";
+    }
+    return result;
+  }
   public renderItemTitle(item?: any, index?: number, column?: IColumn): any {
     debugger;
     let extension = item.title.split('.').pop();
@@ -205,7 +212,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
 
 
                   disabled={true}
-                  value={this.props.task.AssignedTo} />
+                  value={this.getAssignees(this.props.task.EFRAssignedTo)} />
               </td>
             </tr>
             <tr>
@@ -223,7 +230,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
         <Label className={styles.uploadInstructions} >Please upload the files containing the information requested on or before the Due Date above.
              You can drag and drop file(s) into the area shaded in blue below, or click the
              'Choose File' button to select the file(s). Uploaded files  will be automatically prefixed
-             with the reference {this.props.task.Title}   </Label>
+             with the reference {this.props.task.Title}.  </Label>
         <Dropzone className={styles.dropzone} onDrop={this.onDrop.bind(this)} disableClick={true} >
           <div>
             Drag and drop files here to upload, or click Choose File below. Click on a file to view it.
