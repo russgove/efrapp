@@ -10,13 +10,22 @@ import {
 import * as strings from 'EfrAdminWebPartStrings';
 import EfrAdmin from './components/EfrAdmin';
 import { IEfrAdminProps } from './components/IEfrAdminProps';
-
+import pnp from "sp-pnp-js";
 export interface IEfrAdminWebPartProps {
   description: string;
 }
 
 export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebPartProps> {
+  public onInit(): Promise<void> {
+    return super.onInit().then(_ => {
 
+      pnp.setup({
+        spfxContext: this.context,
+      });
+
+      return ;
+    });
+  } 
   public render(): void {
     const element: React.ReactElement<IEfrAdminProps > = React.createElement(
       EfrAdmin,

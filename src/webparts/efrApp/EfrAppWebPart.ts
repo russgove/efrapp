@@ -119,7 +119,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
         task: this.properties.task,
         documents: this.properties.documents,
         uploadFile: this.uploadFile.bind(this),
-        cultureInfo: this.context.pageContext.cultureInfo,
+        cultureName: this.context.pageContext.cultureInfo.currentCultureName,
         fetchDocumentWopiFrameURL: this.fetchDocumentWopiFrameURL.bind(this),
         getDocuments: this.getDocuments.bind(this),
         documentIframeWidth: 200,

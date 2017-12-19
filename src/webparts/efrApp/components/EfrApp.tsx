@@ -72,7 +72,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     let month = parseInt(dateString.substr(5, 2));
     let day = parseInt(dateString.substr(8, 2));
     return new Date(year, month, day)
-      .toLocaleDateString(this.props.cultureInfo.currentCultureName, options)
+      .toLocaleDateString(this.props.cultureName, options)
 
   }
   public documentRowMouseEnter(document: Document, e: any) {
