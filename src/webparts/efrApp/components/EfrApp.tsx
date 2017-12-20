@@ -31,7 +31,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     this.state = {
       documentCalloutIframeUrl: "",
       documents: props.documents
-    }
+    };
   }
   public createSummaryMarkup(html) {
     console.log("in createSummaryMarkup");
@@ -72,7 +72,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     let month = parseInt(dateString.substr(5, 2));
     let day = parseInt(dateString.substr(8, 2));
     return new Date(year, month, day)
-      .toLocaleDateString(this.props.cultureName, options)
+      .toLocaleDateString(this.props.cultureName, options);
 
   }
   public documentRowMouseEnter(document: Document, e: any) {
@@ -110,7 +110,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
 
     // mode: 0: view, 1: edit, 2: mobileView, 3: interactivePreview
     this.props.fetchDocumentWopiFrameURL(document.id, 0, this.props.task.EFRLibrary).then(url => {
-      console.log("wopi frame url is " + url)
+      console.log("wopi frame url is " + url);
       if (!url || url === "") {
         window.open(document.serverRalativeUrl, "_blank");
       } else {
