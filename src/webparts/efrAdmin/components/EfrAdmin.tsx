@@ -137,9 +137,8 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     const messages = map(this.state.messages, (m) => {
       debugger;
       return "<div>" + m + "</div>";
-
     });
-    return { __html: messages };
+    return { __html: messages.join('') };
   }
   public render(): React.ReactElement<IEfrAdminProps> {
 
