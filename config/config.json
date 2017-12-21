@@ -19,7 +19,33 @@
       ]
     }
   },
-  "externals": {},
+  "externals": {
+    "sp-init": {
+      "path": "https://tronoxglobal.sharepoint.com/_layouts/15/init.js",
+      "globalName": "$_global_init"
+    },
+    "microsoft-ajax": {
+      "path": "https://tronoxglobal.sharepoint.com/_layouts/15/MicrosoftAjax.js",
+      "globalName": "Sys",
+      "globalDependencies": [
+        "sp-init"
+      ]
+    },
+    "sp-runtime": {
+      "path": "https://tronoxglobal.sharepoint.com/_layouts/15/SP.Runtime.js",
+      "globalName": "SP",
+      "globalDependencies": [
+        "microsoft-ajax"
+      ]
+    },
+    "sharepoint": {
+      "path": "https://tronoxglobal.sharepoint.com/_layouts/15/SP.js",
+      "globalName": "SP",
+      "globalDependencies": [
+        "sp-runtime"
+      ]
+    }
+  },
   "localizedResources": {
     "EfrAppWebPartStrings": "lib/webparts/efrApp/loc/{locale}.js",
     "EfrAdminWebPartStrings": "lib/webparts/efrAdmin/loc/{locale}.js"

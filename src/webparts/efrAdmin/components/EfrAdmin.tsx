@@ -12,6 +12,11 @@ import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
 import { Label } from "office-ui-fabric-react/lib/Label";
 import { RoleDefinitions } from 'sp-pnp-js/lib/sharepoint/roles';
 import { find, map } from "lodash";
+// use jsom to add webpart to editform
+require('sp-init');
+require('microsoft-ajax');
+require('sp-runtime');
+require('sharepoint');
 export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminState> {
   public constructor(props) {
     super();
@@ -31,6 +36,57 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     });
 
   }
+  public async AddWebPartToEditForm(webRelativeUrl: string, editformUrl,webPartXml:string) {
+    const clientContext: SP.ClientContext = new SP.ClientContext(webRelativeUrl);
+    var oFile = clientContext.get_web().getFileByServerRelativeUrl(editformUrl);
+    
+    var limitedWebPartManager = oFile.getLimitedWebPartManager(SP.WebParts.PersonalizationScope.shared);
+    let webparts = limitedWebPartManager.get_webParts();
+    clientContext.load(webparts, 'Include(WebPart)');
+    clientContext.load(limitedWebPartManager);
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+    debugger;
+    let cnt = webparts.get_count();
+    let originalWebPartDef = webparts.get_item(0);
+    let originalWebPart = originalWebPartDef.get_webPart();
+    originalWebPart.set_hidden(true);
+    originalWebPartDef.saveWebPartChanges();
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        console.log("the webpart was hidden");
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+    debugger;
+      let oWebPartDefinition = limitedWebPartManager.importWebPart(webPartXml);
+      let oWebPart = oWebPartDefinition.get_webPart();
+   
+      limitedWebPartManager.addWebPart(oWebPart, 'Main', 1);
+   
+      clientContext.load(oWebPart);
+   
+      await new Promise((resolve, reject) => {
+        clientContext.executeQueryAsync((x) => {
+          console.log("the new webpart was added");
+          resolve();
+        }, (error) => {
+          console.log(error);
+          reject();
+        });
+      });
+  }
+  
+
   public async createSite(): Promise<any> {
 
     let newWeb: Web;  // the web that gets created
@@ -40,17 +96,17 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     let tasks: Array<any>; // the list of tasks in the TaskMaster list. We need to create on e task for each of these in tye EFRTasks list in the new site
     let taskList: List; // the task list we created  in the new site
     let contentTypes: Array<any>; /// the content types in the site. We need to add the pnctask content type to the taskList
-    let webServerRelativeUrl:string;
-    let editformurl:string;
-    let editform:any;
+    let webServerRelativeUrl: string;
+    let editformurl: string;
+    let editform: any;
     this.addMessage("CreatingSite");
 
     // create the site
     await pnp.sp.web.webs.add(this.state.siteName, this.state.siteName, this.state.siteName, "STS#0").then((war: WebAddResult) => {
       this.addMessage("CreatedSite");
-      
+
       // show the response from the server when adding the web
-      webServerRelativeUrl=war.data.ServerRelativeUrl;
+      webServerRelativeUrl = war.data.ServerRelativeUrl;
       console.log(war.data);
       newWeb = war.web;
       return;
@@ -152,7 +208,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       });
     //  create the task list in the site
     this.addMessage("Creating taskList ");
-  
+
     await newWeb.lists.add("EFRTasks", "EFRTasks", 100, true).then(async (listResponse) => {
       this.addMessage("Created List EFRTasks ");
 
@@ -168,22 +224,33 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     });
     debugger;
     // set the custom form
-    await taskList.forms.get().then(async (forms)=>{
-      debugger;
-      find(forms,(f:any)=>{return f.FormType === 6})["ServerRelativeUrl"]=webServerRelativeUrl+"/SiteAssets/testForm.aspx";
-      debugger;
-      await taskList.update({Forms:forms}).then(async (f)=>{
-        debugger;
+    // await taskList.forms.get().then(async (forms)=>{
+    //   debugger;
+    //   find(forms,(f:any)=>{return f.FormType === 6})["ServerRelativeUrl"]=webServerRelativeUrl+"/SiteAssets/testForm.aspx";
+    //   debugger;
+    //   await taskList.update({Forms:forms}).then(async (f)=>{
+    //     debugger;
 
-        this.addMessage("updatedf forms ");
-        return;
-      }).catch(error => {
-        debugger;
-        this.addMessage("<h1>error updaing forms</h1>");
-        this.addMessage(error.data.responseBody["odata.error"].message.value);
-        console.error(error);
-        return;
-      });;
+    //     this.addMessage("updatedf forms ");
+    //     return;
+    //   }).catch(error => {
+    //     debugger;
+    //     this.addMessage("<h1>error updaing forms</h1>");
+    //     this.addMessage(error.data.responseBody["odata.error"].message.value);
+    //     console.error(error);
+    //     return;
+    //   });;
+    // }).catch(error => {
+    //   debugger;
+    //   this.addMessage("<h1>error fetching forms</h1>");
+    //   this.addMessage(error.data.responseBody["odata.error"].message.value);
+    //   console.error(error);
+    //   return;
+    // });
+    await taskList.forms.get().then(async (forms) => {
+      debugger;
+      editformurl = find(forms, (f: any) => { return f.FormType === 6 })["ServerRelativeUrl"];
+      return;
     }).catch(error => {
       debugger;
       this.addMessage("<h1>error fetching forms</h1>");
@@ -191,6 +258,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       console.error(error);
       return;
     });
+    await this.AddWebPartToEditForm(webServerRelativeUrl, editformurl,this.props.webPartXml);
     //add the PBC Task content type
     await taskList.contentTypes.addAvailableContentType("0x0100F2A5ABE2D8166E4E9A3C888E1DB4DC8B").then(ct => {
       this.addMessage("Added EFR Task content type");
@@ -203,16 +271,16 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       return;
     });
     //add the default view to show only open items assigned to me sorted bt date descening
-  
+
     await taskList.views.add("My Open Tasks", false, {
       RowLimit: 10,
       ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="FALSE" /></OrderBy><Where><And><Eq><FieldRef Name="EFRAssignedTo" /><Value Type="Integer"><UserID Type="Integer" /></Value></Eq><Eq><FieldRef Name="EFRVerifiedByAdmin" /><Value Type="Text">No</Value></Eq></And></Where>'
     }).then(async (v: ViewAddResult) => {
-   
+
       // set this as the homePage
-      let homepage=v.data.ServerRelativeUrl.substr(webServerRelativeUrl.length+1);
+      let homepage = v.data.ServerRelativeUrl.substr(webServerRelativeUrl.length + 1);
       this.context
-      await newWeb.rootFolder.update({"WelcomePage":homepage}).then((x)=>{
+      await newWeb.rootFolder.update({ "WelcomePage": homepage }).then((x) => {
         this.addMessage("Set Site homepage to this view");
       }).catch(error => {
         debugger;
@@ -223,7 +291,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       });
       // manipulate the view's fields
       await v.view.fields.removeAll().then(async _ => {
-    
+
         await Promise.all([
           v.view.fields.add("Title"),
           v.view.fields.add("EFRInformationRequested"),
@@ -232,7 +300,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
           v.view.fields.add("EFRCompletedByUser"),
           v.view.fields.add("EFRVerifiedByAdmin"),
         ]).then(_ => {
-     
+
           this.addMessage("Added My Tasks View");
           return;
         });
@@ -245,7 +313,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     //add the default view to show only open items assigned to me sorted bt date descening
     await taskList.views.add("My Tasks", false, {
       RowLimit: 10,
-      DefaultView:true,
+      DefaultView: true,
       ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="FALSE" /></OrderBy><Where><Eq><FieldRef Name="EFRAssignedTo" /><Value Type="Integer"><UserID Type="Integer" /></Value></Eq></Where>'
     }).then(async (v: ViewAddResult) => {
 
@@ -270,7 +338,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       return
     });
 
- 
+
     // remove the item  and folder  Content types
     // await taskList.rootFolder.contentTypeOrder.get().then(async (ctypes) => {
     //   debugger;
@@ -324,7 +392,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     // create the tasks in the new task list
 
     for (const task of tasks) {
-     
+
       let itemToAdd = {
         "ContentTypeId": "0x0100F2A5ABE2D8166E4E9A3C888E1DB4DC8B",
         "Title": task.Title,

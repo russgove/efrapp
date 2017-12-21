@@ -12,7 +12,7 @@ import EfrAdmin from './components/EfrAdmin';
 import { IEfrAdminProps } from './components/IEfrAdminProps';
 import pnp from "sp-pnp-js";
 export interface IEfrAdminWebPartProps {
-  description: string;
+  webPartXml: string;
 }
 
 export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebPartProps> {
@@ -30,7 +30,7 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
     const element: React.ReactElement<IEfrAdminProps > = React.createElement(
       EfrAdmin,
       {
-        description: this.properties.description
+        webPartXml:this.properties.webPartXml
       }
     );
 

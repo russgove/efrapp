@@ -1,3 +1,4 @@
 export interface IEfrAdminProps {
-  description: string;
+  webPartXml: string;
+
 }
