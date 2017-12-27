@@ -23,14 +23,14 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
         spfxContext: this.context,
       });
 
-      return ;
+      return;
     });
-  } 
+  }
   public render(): void {
-    const element: React.ReactElement<IEfrAdminProps > = React.createElement(
+    const element: React.ReactElement<IEfrAdminProps> = React.createElement(
       EfrAdmin,
       {
-        webPartXml:this.properties.webPartXml
+        webPartXml: this.properties.webPartXml
       }
     );
 
@@ -52,14 +52,15 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel
-                })
-              ]
-            }
+              
+                
+                 
+
           ]
         }
       ]
-    };
-  }
+    }
+      ]
+  };
+}
 }

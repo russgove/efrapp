@@ -5,6 +5,7 @@ import { IEfrAdminState } from './IEfrAdminState';
 import { escape } from '@microsoft/sp-lodash-subset';
 import { PrimaryButton, ButtonType } from "office-ui-fabric-react/lib/Button";
 import { Image, ImageFit } from "office-ui-fabric-react/lib/Image";
+import { ListView } from "@pnp/spfx-property-controls";
 
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import pnp, { WebAddResult, Web, RoleDefinitionBindings, List, ListAddResult, TypedHash, ViewAddResult } from "sp-pnp-js";
@@ -36,10 +37,18 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     });
 
   }
-  public async AddWebPartToEditForm(webRelativeUrl: string, editformUrl,webPartXml:string) {
+  /**
+   *  Adds a custom webpart to the edit form located at editformUrl
+   * 
+   * @param {string} webRelativeUrl -- The web containing the list
+   * @param {any} editformUrl -- the url of the editform page
+   * @param {string} webPartXml  -- the xml for the webpart to add
+   * @memberof EfrAdmin
+   */
+  public async AddWebPartToEditForm(webRelativeUrl: string, editformUrl, webPartXml: string) {
     const clientContext: SP.ClientContext = new SP.ClientContext(webRelativeUrl);
     var oFile = clientContext.get_web().getFileByServerRelativeUrl(editformUrl);
-    
+
     var limitedWebPartManager = oFile.getLimitedWebPartManager(SP.WebParts.PersonalizationScope.shared);
     let webparts = limitedWebPartManager.get_webParts();
     clientContext.load(webparts, 'Include(WebPart)');
@@ -68,25 +77,30 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       });
     });
     debugger;
-      let oWebPartDefinition = limitedWebPartManager.importWebPart(webPartXml);
-      let oWebPart = oWebPartDefinition.get_webPart();
-   
-      limitedWebPartManager.addWebPart(oWebPart, 'Main', 1);
-   
-      clientContext.load(oWebPart);
-   
-      await new Promise((resolve, reject) => {
-        clientContext.executeQueryAsync((x) => {
-          console.log("the new webpart was added");
-          resolve();
-        }, (error) => {
-          console.log(error);
-          reject();
-        });
-      });
-  }
-  
+    let oWebPartDefinition = limitedWebPartManager.importWebPart(webPartXml);
+    let oWebPart = oWebPartDefinition.get_webPart();
 
+    limitedWebPartManager.addWebPart(oWebPart, 'Main', 1);
+
+    clientContext.load(oWebPart);
+
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        console.log("the new webpart was added");
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+  }
+
+  /**
+   * Creates an EFR Quarterly subsite including secured libraries and an efr tsak list
+   * 
+   * @returns {Promise<any>} 
+   * @memberof EfrAdmin
+   */
   public async createSite(): Promise<any> {
 
     let newWeb: Web;  // the web that gets created
@@ -249,7 +263,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     // });
     await taskList.forms.get().then(async (forms) => {
       debugger;
-      editformurl = find(forms, (f: any) => { return f.FormType === 6 })["ServerRelativeUrl"];
+      editformurl = find(forms, (f: any) => { return f.FormType === 6; })["ServerRelativeUrl"];
       return;
     }).catch(error => {
       debugger;
@@ -258,7 +272,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       console.error(error);
       return;
     });
-    await this.AddWebPartToEditForm(webServerRelativeUrl, editformurl,this.props.webPartXml);
+    await this.AddWebPartToEditForm(webServerRelativeUrl, editformurl, this.props.webPartXml);
     //add the PBC Task content type
     await taskList.contentTypes.addAvailableContentType("0x0100F2A5ABE2D8166E4E9A3C888E1DB4DC8B").then(ct => {
       this.addMessage("Added EFR Task content type");
@@ -279,7 +293,6 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
       // set this as the homePage
       let homepage = v.data.ServerRelativeUrl.substr(webServerRelativeUrl.length + 1);
-      this.context
       await newWeb.rootFolder.update({ "WelcomePage": homepage }).then((x) => {
         this.addMessage("Set Site homepage to this view");
       }).catch(error => {
@@ -299,7 +312,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
           v.view.fields.add("EFRAssignedTo"),
           v.view.fields.add("EFRCompletedByUser"),
           v.view.fields.add("EFRVerifiedByAdmin"),
-        ]).then(_ => {
+        ]).then(() => {
 
           this.addMessage("Added My Tasks View");
           return;
@@ -328,66 +341,16 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
           v.view.fields.add("EFRAssignedTo"),
           v.view.fields.add("EFRCompletedByUser"),
           v.view.fields.add("EFRVerifiedByAdmin"),
-        ]).then(_ => {
+        ]).then(() => {
 
           this.addMessage("Added My Tasks View");
           return;
         });
         return;
       });
-      return
+      return;
     });
 
-
-    // remove the item  and folder  Content types
-    // await taskList.rootFolder.contentTypeOrder.get().then(async (ctypes) => {
-    //   debugger;
-
-    //   ctypes.push(ctypes.shift(0));
-    //   const stuff:TypedHash= {
-    //     "ContentTypeOrder":
-    //       {
-    //         __metadata:
-    //           {
-    //             'type': 'Collection(SP.ContentTypeId)'
-    //           },
-    //         results: ctypes
-    //       }
-    //   };
-    //   await taskList.rootFolder.update({ "ContentTypeOrder": stuff })
-    //     .then((x) => {
-    //       this.addMessage("Holy crap!");
-    //       return;
-    //     }).catch((error) => {
-    //       this.addMessage("NFG");
-    //       this.addMessage(error.data.responseBody["odata.error"].message.value);
-    //       return;
-    //     });
-    //   ;
-
-    //   return;
-    // });
-    // // remove the item  and folder  Content types
-    // await taskList.contentTypes.get().then(async (ctypes) => {
-    //   debugger;
-    //   for (const ctype of ctypes) {
-    //     debugger;
-    //     if (ctype.Id !== "0x0100F2A5ABE2D8166E4E9A3C888E1DB4DC8B") {
-    //       await taskList.contentTypes.getById(ctype.Id).delete().then(x => {
-    //         debugger;
-    //         this.addMessage("deleted contenttype " + ctype.Name)
-    //         return;
-    //       }).catch(error => {
-    //         debugger;
-    //         this.addMessage("<h1>error deleting  content type" + ctype.Name + " from task list</h1>");
-    //         this.addMessage(error.data.responseBody["odata.error"].message.value);
-    //         console.error(error);
-    //         return;
-    //       });;
-    //     }
-    //   }
-    //   return;
-    // });
 
     // create the tasks in the new task list
 
@@ -405,7 +368,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         "EFRPeriod": task.Period,
         "EFRCompletedByUser": "No",
         "EFRVerifiedByAdmin": "No"
-      }
+      };
       await taskList.items.add(itemToAdd).then((results) => {
         this.addMessage("added task" + task.Title);
         return;
