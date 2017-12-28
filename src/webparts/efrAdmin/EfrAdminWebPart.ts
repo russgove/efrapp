@@ -13,6 +13,7 @@ import { IEfrAdminProps } from './components/IEfrAdminProps';
 import pnp from "sp-pnp-js";
 export interface IEfrAdminWebPartProps {
   webPartXml: string;
+  workflowName:string; // the name of the workflow to add to the EFR Task list
 }
 
 export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebPartProps> {
@@ -27,10 +28,12 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
     });
   }
   public render(): void {
+    debugger;
     const element: React.ReactElement<IEfrAdminProps> = React.createElement(
       EfrAdmin,
       {
-        webPartXml: this.properties.webPartXml
+        webPartXml: this.properties.webPartXml,
+        workflowName:this.properties.workflowName
       }
     );
 

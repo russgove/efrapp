@@ -6,9 +6,9 @@ import { escape } from '@microsoft/sp-lodash-subset';
 import { PrimaryButton, ButtonType } from "office-ui-fabric-react/lib/Button";
 import { Image, ImageFit } from "office-ui-fabric-react/lib/Image";
 import { ListView } from "@pnp/spfx-property-controls";
-
+import { load, exec, toArray } from "../../JsomHelpers"
 import { TextField } from "office-ui-fabric-react/lib/TextField";
-import pnp, { WebAddResult, Web, RoleDefinitionBindings, List, ListAddResult, TypedHash, ViewAddResult } from "sp-pnp-js";
+import pnp, { WebAddResult, Web, Site, ContextInfo, RoleDefinitionBindings, List, ListAddResult, TypedHash, ViewAddResult } from "sp-pnp-js";
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
 import { Label } from "office-ui-fabric-react/lib/Label";
 import { RoleDefinitions } from 'sp-pnp-js/lib/sharepoint/roles';
@@ -18,7 +18,9 @@ require('sp-init');
 require('microsoft-ajax');
 require('sp-runtime');
 require('sharepoint');
+require('sp-workflow');
 export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminState> {
+
   public constructor(props) {
     super();
     console.log("in Construrctor");
@@ -61,7 +63,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         reject();
       });
     });
-    debugger;
+
     let cnt = webparts.get_count();
     let originalWebPartDef = webparts.get_item(0);
     let originalWebPart = originalWebPartDef.get_webPart();
@@ -76,7 +78,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         reject();
       });
     });
-    debugger;
+
     let oWebPartDefinition = limitedWebPartManager.importWebPart(webPartXml);
     let oWebPart = oWebPartDefinition.get_webPart();
 
@@ -109,12 +111,20 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     let siteGroups: Array<any>;// all the sitegroups in the site
     let tasks: Array<any>; // the list of tasks in the TaskMaster list. We need to create on e task for each of these in tye EFRTasks list in the new site
     let taskList: List; // the task list we created  in the new site
+    let taskListId: string; // the ID of task list we created  in the new site
     let contentTypes: Array<any>; /// the content types in the site. We need to add the pnctask content type to the taskList
-    let webServerRelativeUrl: string;
+    let webServerRelativeUrl: string; // the url of the subweb
+    let contextInfo: ContextInfo;
     let editformurl: string;
     let editform: any;
-    this.addMessage("CreatingSite");
+    let parentSiteUrl: string;
+    let efrTasklistId: string;
 
+    this.addMessage("CreatingSite");
+    await pnp.sp.site.getContextInfo().then((context: ContextInfo) => {
+      debugger;
+      contextInfo = context;
+    });
     // create the site
     await pnp.sp.web.webs.add(this.state.siteName, this.state.siteName, this.state.siteName, "STS#0").then((war: WebAddResult) => {
       this.addMessage("CreatedSite");
@@ -175,6 +185,23 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         await newWeb.lists.add(library["Title"], library["Title"], 101, false).then(async (listResponse) => {
           this.addMessage("Created Library " + library["Title"]);
           let list = listResponse.list;
+          debugger;
+          let viewUrl:string;
+          await list.views.getByTitle("All Documents").get().then((view)=>{
+            debugger;
+            viewUrl=view.ServerRelativeUrl;
+
+          })
+          await newWeb.navigation.quicklaunch.add(library["Title"],viewUrl,true).then((response)=>{
+            debugger;
+          }).catch(error => {
+            debugger;
+            this.addMessage("<h1>error adding list to quicklaunch " + library["Title"] + "</h1>");
+            this.addMessage(error.data.responseBody["odata.error"].message.value);
+            console.error(error);
+            return;
+          });
+          ;
           await list.breakRoleInheritance(true).then((e) => {
             this.addMessage("broke role inheritance on " + library["Title"]);
           }).catch(error => {
@@ -225,8 +252,9 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
     await newWeb.lists.add("EFRTasks", "EFRTasks", 100, true).then(async (listResponse) => {
       this.addMessage("Created List EFRTasks ");
-
+      debugger;
       taskList = listResponse.list;
+      taskListId = listResponse.data.Id;
 
       return;
     }).catch(error => {
@@ -236,7 +264,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       console.error(error);
       return;
     });
-    debugger;
+
     // set the custom form
     // await taskList.forms.get().then(async (forms)=>{
     //   debugger;
@@ -262,7 +290,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     //   return;
     // });
     await taskList.forms.get().then(async (forms) => {
-      debugger;
+
       editformurl = find(forms, (f: any) => { return f.FormType === 6; })["ServerRelativeUrl"];
       return;
     }).catch(error => {
@@ -316,12 +344,19 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
           this.addMessage("Added My Tasks View");
           return;
-        });
+        }).catch(error => {
+          debugger;
+          this.addMessage("<h1>error adding viewfielst</h1>");
+          this.addMessage(error.data.responseBody["odata.error"].message.value);
+          console.error(error);
+          return;
+        });;
         return;
       });
       return;
 
     });
+
     //add the a view to show alln items assigned to me sorted bt date descening
     //add the default view to show only open items assigned to me sorted bt date descening
     await taskList.views.add("My Tasks", false, {
@@ -344,6 +379,18 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         ]).then(() => {
 
           this.addMessage("Added My Tasks View");
+          return;
+        }).catch(error => {
+          debugger;
+          this.addMessage("<h1>error adding viewFields to my taskst</h1>");
+          this.addMessage(error.data.responseBody["odata.error"].message.value);
+          console.error(error);
+          return;
+        }).catch(error => {
+          debugger;
+          this.addMessage("<h1>error removing fields from my tasks</h1>");
+          this.addMessage(error.data.responseBody["odata.error"].message.value);
+          console.error(error);
           return;
         });
         return;
@@ -380,8 +427,120 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         return;
       });
     }
+
+    // add the workflow to the task list
+    // 2010 workflow is associate with the content type
+    //await this.addNotificationWorkflow(contextInfo.SiteFullUrl, taskListId)
+
     this.addMessage("DONE!!");
   }
+  // public async addNotificationWorkflow(webServerRelativeUrl, efrTaskListId: string): Promise<any> {
+  //   debugger;
+  //   let wf: SP.WorkflowServices.WorkflowDefinition;
+  //   let historyListId: string;
+  //   let taskListId: string;
+  //   let workflowID: SP.Guid;
+  //   const context: SP.ClientContext = new SP.ClientContext(webServerRelativeUrl);
+  //   var workflowServicesManager = SP.WorkflowServices.WorkflowServicesManager.newObject(context, context.get_web());
+  //   // connect to the deployment service
+  //   var workflowDeploymentService = workflowServicesManager.getWorkflowDeploymentService();
+  //   // get all installed workflows
+  //   var publishedWorkflowDefinitions = workflowDeploymentService.enumerateDefinitions(true);
+
+  //   context.load(publishedWorkflowDefinitions);
+
+  //   await new Promise((resolve, reject) => {
+  //     context.executeQueryAsync((x) => {
+  //       resolve();
+  //     }, (error) => {
+  //       console.log(error);
+  //       reject();
+  //     });
+  //   });
+
+  //   debugger;
+  //   var pwe = publishedWorkflowDefinitions.getEnumerator();
+  //   console.log("wourkflowcount " + publishedWorkflowDefinitions.get_count());
+  //   while (pwe.moveNext()) {
+  //     debugger;
+  //     let publishedWorkflowDefinition = pwe.get_current();
+  //     debugger;
+  //     console.log(publishedWorkflowDefinition.get_displayName());
+  //     if (publishedWorkflowDefinition.get_displayName() === this.props.workflowName) {
+  //       wf = publishedWorkflowDefinition;
+  //       let wfid: string = wf.get_id().toString();
+  //       workflowID = new SP.Guid(wfid);
+  //     }
+  //   }
+  //   debugger;
+  //   await pnp.sp.web.lists.getByTitle("Workflow History").get()
+  //     .then((list) => {
+  //       debugger;
+  //       historyListId = list.Id;
+  //     }).catch(error => {
+  //       debugger;
+  //       this.addMessage("<h1>error getting Workflow History listy</h1>");
+  //       this.addMessage(error.data.responseBody["odata.error"].message.value);
+  //       console.error(error);
+  //       return;
+  //     });;
+  //   await pnp.sp.web.lists.getByTitle("Tasks").get()
+  //     .then((list) => {
+  //       debugger;
+  //       taskListId = list.Id;
+  //     }).catch(error => {
+  //       debugger;
+  //       this.addMessage("<h1>error creating workflow task list</h1>");
+  //       this.addMessage(error.data.responseBody["odata.error"].message.value);
+  //       console.error(error);
+  //       return;
+  //     });;
+
+  //   debugger;
+
+
+
+  //   // connect to the deployment service
+
+  //   // connect to the subscription service
+  //   var workflowSubscriptionService = workflowServicesManager.getWorkflowSubscriptionService();
+  //   // create a new association / subscription
+  //   let newSubscription = new SP.WorkflowServices.WorkflowSubscription(context, null);
+  //   newSubscription.set_definitionId(workflowID);
+  //   newSubscription.set_enabled(true);
+  //   newSubscription.set_name("EFR Notifications");
+
+
+  //   var startupOptions = new Array<string>();
+  //   // automatic start
+  //   // manual start
+  //   startupOptions.push("WorkflowStart");
+
+  //   // set the workflow start settings
+  //   newSubscription.set_eventTypes(startupOptions);
+
+
+  //   // set the associated task and history lists
+  //   newSubscription.setProperty("HistoryListId", historyListId);
+  //   newSubscription.setProperty("TaskListId", taskListId);
+
+  //   // OPTIONAL: add any association form values
+  //   //    newSubscription.SetProperty("Prop1", "Value1");
+  //   //    newSubscription.SetProperty("Prop2", "Value2");
+
+  //   // create the association
+  //   workflowSubscriptionService.publishSubscriptionForList(newSubscription, taskListId);
+  //   await new Promise((resolve, reject) => {
+  //     context.executeQueryAsync((x) => {
+  //       resolve();
+  //       debugger;
+  //     }, (request, error) => {
+  //       console.log(error);
+  //       reject();
+  //     });
+  //   });
+  //   debugger;
+  // }
   private displayMessages(): any {
     const messages = map(this.state.messages, (m) => {
       return "<div>" + m + "</div>";

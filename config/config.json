@@ -44,6 +44,13 @@
       "globalDependencies": [
         "sp-runtime"
       ]
+    },
+    "sp-workflow": {
+      "path": "https://tronoxglobal.sharepoint.com/_layouts/15/SP.WorkflowServices.js",
+      "globalName": "SP",
+      "globalDependencies": [
+        "sp-runtime"
+      ]
     }
   },
   "localizedResources": {
