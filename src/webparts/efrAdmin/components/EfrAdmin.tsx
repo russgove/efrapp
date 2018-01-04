@@ -8,7 +8,11 @@ import { Image, ImageFit } from "office-ui-fabric-react/lib/Image";
 import { ListView } from "@pnp/spfx-property-controls";
 import { load, exec, toArray } from "../../JsomHelpers"
 import { TextField } from "office-ui-fabric-react/lib/TextField";
-import pnp, { WebAddResult, Web, Site, ContextInfo, RoleDefinitionBindings, List, ListAddResult, TypedHash, ViewAddResult } from "sp-pnp-js";
+import pnp, {
+  WebAddResult, Web, Site, HttpClient, NavigationNodes, NavigationNode, NavigationNodeUpdateResult,
+  ContextInfo, RoleDefinitionBindings, List, ListAddResult, TypedHash, ViewAddResult
+} from "sp-pnp-js";
+import { RenderListDataParameters, RenderListDataOptions } from "sp-pnp-js";
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
 import { Label } from "office-ui-fabric-react/lib/Label";
 import { RoleDefinitions } from 'sp-pnp-js/lib/sharepoint/roles';
@@ -29,6 +33,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       messages: ["Enter the site name and click the create site button"],
       siteName: ""
     };
+
   }
   public addMessage(msg): void {
     console.log(msg);
@@ -38,6 +43,30 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       return newState;
     });
 
+  }
+  /**
+  *  Adds a custom webpart to the edit form located at editformUrl
+  * 
+  * @param {string} webRelativeUrl -- The web containing the list
+  * @param {any} editformUrl -- the url of the editform page
+  * @param {string} webPartXml  -- the xml for the webpart to add
+  * @memberof EfrAdmin
+  */
+  public async SetWebToUseSharedNavigation(webRelativeUrl: string) {
+    debugger;
+    const clientContext: SP.ClientContext = new SP.ClientContext(webRelativeUrl);
+    var currentWeb = clientContext.get_web();
+    var navigation = currentWeb.get_navigation();
+    navigation.set_useShared(true);
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        console.log("the web was set to use shared navigation");
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
   }
   /**
    *  Adds a custom webpart to the edit form located at editformUrl
@@ -105,8 +134,10 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
    */
   public async createSite(): Promise<any> {
 
+
     let newWeb: Web;  // the web that gets created
     let libraryList: Array<any>; // the list of libraries we need to create in the new site. has the library name and the name of the group that should get access
+    let foldersList: Array<string>; // the list of folders to create in each of the libraries.
     let roleDefinitions: Array<any>;// the roledefs for the site, we need to grant 'contribute no delete'
     let siteGroups: Array<any>;// all the sitegroups in the site
     let tasks: Array<any>; // the list of tasks in the TaskMaster list. We need to create on e task for each of these in tye EFRTasks list in the new site
@@ -122,7 +153,6 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
     this.addMessage("CreatingSite");
     await pnp.sp.site.getContextInfo().then((context: ContextInfo) => {
-      debugger;
       contextInfo = context;
     });
     // create the site
@@ -141,17 +171,34 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       console.error(error);
       return;
     });
+    await this.SetWebToUseSharedNavigation(webServerRelativeUrl);
+
+
+
     // now get  the list of libraries we need to create on the new site
-    await pnp.sp.web.lists.getByTitle("EFRLibraries").items.top(2).get().then((libraries) => {
-      this.addMessage("got list of libraries");
-      libraryList = libraries;
-      return;
+    await pnp.sp.web.lists.getByTitle("EFRLibraries").items
+      //   .top(2)
+      .get().then((libraries) => {
+        this.addMessage("got list of libraries");
+        libraryList = libraries;
+        return;
+      }).catch(error => {
+        debugger;
+        this.addMessage("<h1>error fetching library list</h1>");
+        this.addMessage(error.data.responseBody["odata.error"].message.value);
+        console.error(error);
+        return;
+      });
+    // now get  the list of folders  we need to create in each library
+    foldersList = await pnp.sp.web.lists.getByTitle("EFRFolders").items.get().then((folders) => {
+      this.addMessage("got list of folders");
+      return map(folders, (f) => { return f["Title"] });
     }).catch(error => {
       debugger;
-      this.addMessage("<h1>error fetching library list</h1>");
+      this.addMessage("<h1>error fetching folder list</h1>");
       this.addMessage(error.data.responseBody["odata.error"].message.value);
       console.error(error);
-      return;
+      return null;
     });
     // get the role definitions
     await pnp.sp.web.roleDefinitions.get().then((roleDefs) => {
@@ -169,6 +216,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     await pnp.sp.web.siteGroups.get().then((sg) => {
       this.addMessage("got Site Groups");
       siteGroups = sg;
+      return;
     }).catch(error => {
       debugger;
       this.addMessage("<h1>error getting site groups</h1>");
@@ -185,15 +233,21 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         await newWeb.lists.add(library["Title"], library["Title"], 101, false).then(async (listResponse) => {
           this.addMessage("Created Library " + library["Title"]);
           let list = listResponse.list;
-          debugger;
-          let viewUrl:string;
-          await list.views.getByTitle("All Documents").get().then((view)=>{
-            debugger;
-            viewUrl=view.ServerRelativeUrl;
 
-          })
-          await newWeb.navigation.quicklaunch.add(library["Title"],viewUrl,true).then((response)=>{
+          let viewUrl: string;
+          await list.views.getByTitle("All Documents").get().then((view) => {
+
+            viewUrl = view.ServerRelativeUrl;
+            return;
+          }).catch(error => {
             debugger;
+            this.addMessage("<h1>error getting AllDocuments view</h1>");
+            this.addMessage(error.data.responseBody["odata.error"].message.value);
+            console.error(error);
+            return;
+          });
+          await newWeb.navigation.quicklaunch.add(library["Title"], viewUrl, true).then((response) => {
+            return;
           }).catch(error => {
             debugger;
             this.addMessage("<h1>error adding list to quicklaunch " + library["Title"] + "</h1>");
@@ -201,7 +255,35 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
             console.error(error);
             return;
           });
-          ;
+          let folderBatch = pnp.sp.createBatch();
+
+          this.addMessage("Creating folders");
+          for (const folder of foldersList) {
+
+            await list.rootFolder.folders.add(folder)
+
+              .then((results) => {
+
+                this.addMessage("Creating folder  " + folder + " in Library " + library["Title"]);
+
+                this.addMessage("Created folder  " + folder + " in Library " + library["Title"]);
+
+              })
+              .catch((error) => {
+                debugger;
+                this.addMessage("<h1>error creating folder" + folder + "in " + library["Title"] + "</h1>");
+
+              });
+          }
+          // debugger;
+          //  await folderBatch.execute().then((results) => {
+          //    this.addMessage("Created all folders in Library " + library["Title"]);
+          //  }).catch((error) => {
+          //    this.addMessage("<h1>error creating folders in  " + library["Title"] + "</h1>");
+          //    return;
+
+          //  });
+
           await list.breakRoleInheritance(true).then((e) => {
             this.addMessage("broke role inheritance on " + library["Title"]);
           }).catch(error => {
@@ -236,7 +318,8 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     }
     // get the master list of tasks
     await pnp.sp.web.lists.getByTitle("PBCMaster").items.expand("EFRLibrary").select("*,EFRLibrary/Title")
-      .top(2).get().then((efrtasks) => {
+      .top(500)
+      .get().then((efrtasks) => {
         this.addMessage("got tsakMaster list");
         tasks = efrtasks;
         return;
@@ -252,7 +335,6 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
     await newWeb.lists.add("EFRTasks", "EFRTasks", 100, true).then(async (listResponse) => {
       this.addMessage("Created List EFRTasks ");
-      debugger;
       taskList = listResponse.list;
       taskListId = listResponse.data.Id;
 
@@ -312,16 +394,15 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       console.error(error);
       return;
     });
+    debugger;
     //add the default view to show only open items assigned to me sorted bt date descening
-
     await taskList.views.add("My Open Tasks", false, {
       RowLimit: 10,
-      ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="FALSE" /></OrderBy><Where><And><Eq><FieldRef Name="EFRAssignedTo" /><Value Type="Integer"><UserID Type="Integer" /></Value></Eq><Eq><FieldRef Name="EFRVerifiedByAdmin" /><Value Type="Text">No</Value></Eq></And></Where>'
+      ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="TRUE" /></OrderBy><Where><And><Eq><FieldRef Name="EFRAssignedTo" /><Value Type="Integer"><UserID Type="Integer" /></Value></Eq><Eq><FieldRef Name="EFRVerifiedByAdmin" /><Value Type="Text">No</Value></Eq></And></Where>'
     }).then(async (v: ViewAddResult) => {
-
       // set this as the homePage
       let homepage = v.data.ServerRelativeUrl.substr(webServerRelativeUrl.length + 1);
-      await newWeb.rootFolder.update({ "WelcomePage": homepage }).then((x) => {
+      await newWeb.rootFolder.update({ "WelcomePage": homepage }).then(() => {
         this.addMessage("Set Site homepage to this view");
       }).catch(error => {
         debugger;
@@ -331,29 +412,45 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         return;
       });
       // manipulate the view's fields
-      await v.view.fields.removeAll().then(async _ => {
+      debugger;
+      await v.view.fields.removeAll().catch((err) => { debugger; });
+      await v.view.fields.add("LinkTitle").catch((err) => { debugger; });
+      await v.view.fields.add("EFRInformationRequested").catch((err) => { debugger; });
+      await v.view.fields.add("EFRDueDate").catch((err) => { debugger; });
+      await v.view.fields.add("EFRAssignedTo").catch((err) => { debugger; });
+      await v.view.fields.add("EFRCompletedByUser").catch((err) => { debugger; });
+      this.addMessage("Added My Open Tasks View");
+      return;
 
-        await Promise.all([
-          v.view.fields.add("Title"),
-          v.view.fields.add("EFRInformationRequested"),
-          v.view.fields.add("EFRDueDate"),
-          v.view.fields.add("EFRAssignedTo"),
-          v.view.fields.add("EFRCompletedByUser"),
-          v.view.fields.add("EFRVerifiedByAdmin"),
-        ]).then(() => {
 
-          this.addMessage("Added My Tasks View");
-          return;
-        }).catch(error => {
-          debugger;
-          this.addMessage("<h1>error adding viewfielst</h1>");
-          this.addMessage(error.data.responseBody["odata.error"].message.value);
-          console.error(error);
-          return;
-        });;
+    });
+    // add the ALL OPEN TASKS VIEW
+    await taskList.views.add("All Open Tasks", false, {
+      RowLimit: 10,
+      ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="TRUE" /></OrderBy><Where><Eq><FieldRef Name="EFRVerifiedByAdmin" /><Value Type="Text">No</Value></Eq></Where>'
+    }).then(async (v: ViewAddResult) => {
+      // set this as the homePage
+      let homepage = v.data.ServerRelativeUrl.substr(webServerRelativeUrl.length + 1);
+      await newWeb.rootFolder.update({ "WelcomePage": homepage }).then(() => {
+        this.addMessage("Set Site homepage to this view");
+      }).catch(error => {
+        debugger;
+        this.addMessage("<h1>error setting site home page</h1>");
+        this.addMessage(error.data.responseBody["odata.error"].message.value);
+        console.error(error);
         return;
       });
+      // manipulate the view's fields
+      debugger;
+      await v.view.fields.removeAll().catch((err) => { debugger; });
+      await v.view.fields.add("LinkTitle").catch((err) => { debugger; });
+      await v.view.fields.add("EFRInformationRequested").catch((err) => { debugger; });
+      await v.view.fields.add("EFRDueDate").catch((err) => { debugger; });
+      await v.view.fields.add("EFRAssignedTo").catch((err) => { debugger; });
+      await v.view.fields.add("EFRCompletedByUser").catch((err) => { debugger; });
+      this.addMessage("Added My Open Tasks View");
       return;
+
 
     });
 
@@ -362,42 +459,26 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     await taskList.views.add("My Tasks", false, {
       RowLimit: 10,
       DefaultView: true,
-      ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="FALSE" /></OrderBy><Where><Eq><FieldRef Name="EFRAssignedTo" /><Value Type="Integer"><UserID Type="Integer" /></Value></Eq></Where>'
+      ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="TRUE" /></OrderBy><Where><Eq><FieldRef Name="EFRAssignedTo" /><Value Type="Integer"><UserID Type="Integer" /></Value></Eq></Where>'
     }).then(async (v: ViewAddResult) => {
-
+      debugger;
       // manipulate the view's fields
-      await v.view.fields.removeAll().then(async _ => {
+      await v.view.fields.removeAll().catch((err) => { debugger; });
+      await v.view.fields.add("LinkTitle").catch((err) => { debugger; });
+      await v.view.fields.add("EFRInformationRequested").catch((err) => { debugger; });
+      await v.view.fields.add("EFRDueDate").catch((err) => { debugger; });
+      await v.view.fields.add("EFRAssignedTo").catch((err) => { debugger; });
+      await v.view.fields.add("EFRCompletedByUser").catch((err) => { debugger; });
 
-        await Promise.all([
-
-          v.view.fields.add("Title"),
-          v.view.fields.add("EFRInformationRequested"),
-          v.view.fields.add("EFRDueDate"),
-          v.view.fields.add("EFRAssignedTo"),
-          v.view.fields.add("EFRCompletedByUser"),
-          v.view.fields.add("EFRVerifiedByAdmin"),
-        ]).then(() => {
-
-          this.addMessage("Added My Tasks View");
-          return;
-        }).catch(error => {
-          debugger;
-          this.addMessage("<h1>error adding viewFields to my taskst</h1>");
-          this.addMessage(error.data.responseBody["odata.error"].message.value);
-          console.error(error);
-          return;
-        }).catch(error => {
-          debugger;
-          this.addMessage("<h1>error removing fields from my tasks</h1>");
-          this.addMessage(error.data.responseBody["odata.error"].message.value);
-          console.error(error);
-          return;
-        });
-        return;
-      });
-      return;
     });
 
+
+    // manipulate the All Items view's fields
+    await taskList.views.getByTitle("All Items").fields.add("EFRInformationRequested").catch((err) => { debugger; });
+    await taskList.views.getByTitle("All Items").fields.add("EFRDueDate").catch((err) => { debugger; });
+    await taskList.views.getByTitle("All Items").fields.add("EFRAssignedTo").catch((err) => { debugger; });
+    await taskList.views.getByTitle("All Items").fields.add("EFRCompletedByUser").catch((err) => { debugger; });
+    await taskList.views.getByTitle("All Items").fields.add("EFRVerifiedByAdmin").catch((err) => { debugger; });
 
     // create the tasks in the new task list
 
@@ -558,7 +639,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         <PrimaryButton onClick={this.createSite.bind(this)} title="Create Site">Create Site</PrimaryButton>
 
         <div dangerouslySetInnerHTML={this.displayMessages()} />
-      </div>
+      </div >
     );
   }
 }
