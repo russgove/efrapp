@@ -11,7 +11,7 @@
   .dropzone{
  
     width: 100%;
-    height: 500px;
+    
     border-width: 2px;
     border-color: rgb(102, 102, 102);
     border-style: dashed;
@@ -20,13 +20,19 @@
   }
   .uploadInstructions{
     font-style: italic;
-    font-size: large;
-   font-weight: bold;
     
+  }
+  .documentTitle {
+    overflow-wrap: break-word;
+    display: inline-block;
+    width:300px;
+    white-space:normal; 
   }
   .informationRequested{
     background-color: #f4f4f4;
     font-weight: bold;
+     margin-left:+20px; 
+            margin-right:20px;
   }
   }
    

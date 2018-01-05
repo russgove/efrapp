@@ -7,6 +7,7 @@ import pnp,
 export class PBCTask{
     public Id: number; //id of the splistitem
     public EFRLibrary:string; // library to store the items in
+    public EFRLibraryId:string; // the id of the library in the EFRLibraries list on the rootweb
     //public Reference:string; // the Reference # from the PBC list Mapped to Title in list
     public Title:string; // the Reference # from the PBC list Mapped to Title in list
     public EFRInformationRequested: string; // description of info is needed 

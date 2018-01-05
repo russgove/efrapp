@@ -39,8 +39,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
   }
   private onDrop(acceptedFiles, rejectedFiles) {
     console.log("in onDrop");
-    debugger;
-    let promises: Array<Promise<any>> = [];
+      let promises: Array<Promise<any>> = [];
     acceptedFiles.forEach(file => {
       promises.push(this.props.uploadFile(file, this.props.task.EFRLibrary, this.props.task.Title));
     });
@@ -100,13 +99,17 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
 
     // this.state.documentCalloutTarget = null;
     // this.state.documentCalloutVisible = false;
-    this.setState((current) => ({ ...current, documentCalloutTarget: null, documentCalloutVisible: false }));
+    this.setState((current) => ({
+      ...current,
+      documentCalloutTarget: null,
+      documentCalloutVisible: false
+    }));
     console.log("mouse exit for " + item.title);
   }
   public editDocument(document: Document): void {
     console.log("in editDocument");
 
-    debugger;
+ 
 
     // mode: 0: view, 1: edit, 2: mobileView, 3: interactivePreview
     this.props.fetchDocumentWopiFrameURL(document.id, 0, this.props.task.EFRLibrary).then(url => {
@@ -123,15 +126,14 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     });
 
   }
-  public getAssignees(assignees:Array<{}>):string{
-    let result ="";
-    for (let assignee of assignees){
-      result+=assignee["Title"]+";  ";
+  public getAssignees(assignees: Array<{}>): string {
+    let result = "";
+    for (let assignee of assignees) {
+      result += assignee["Title"] + ";  ";
     }
     return result;
   }
   public renderItemTitle(item?: any, index?: number, column?: IColumn): any {
-    debugger;
     let extension = item.title.split('.').pop();
     let classname = "";
     if (this.validBrandIcons.indexOf(" " + extension + " ") !== -1) {
@@ -147,7 +149,10 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
       <div>
         <div className={classname} /> &nbsp;
         <a href="#"
-          onClickCapture={(e) => { debugger; e.preventDefault(); this.editDocument(item); return false; }}>{item.title}</a>
+          onClickCapture={(e) => {
+            
+              e.preventDefault();
+               this.editDocument(item); return false; }}><span className={styles.documentTitle} > {item.title}</span></a>
       </div>);
   }
   public render(): React.ReactElement<IEfrAppProps> {
@@ -158,7 +163,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
           <table>
             <tr>
               <td>
-                <Label>Reference:</Label>
+                <Label>Reference #:</Label>
               </td>
               <td>
                 <TextField label=""
@@ -167,7 +172,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
                   value={this.props.task.Title} />
               </td>
             </tr>
-            <tr>
+            {/* <tr>
               <td>
                 <Label>Due Date:</Label>
               </td>
@@ -178,44 +183,38 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
                   disabled={true}
                   value={this.getDateString(this.props.task.EFRDueDate)} />
               </td>
-            </tr>
-            <tr>
+            </tr> */}
+            {/* <tr>
               <td>
                 <Label>Period:</Label>
               </td>
               <td>
-                <TextField label=""
+                <div className={styles.informationRequested}
+                  dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRPeriod)} />
 
-
-                  disabled={true}
-                  value={this.props.task.EFRPeriod} />
               </td>
-            </tr>
-            <tr>
+            </tr> */}
+            {/* <tr>
               <td>
                 <Label>Library:</Label>
               </td>
               <td>
                 <TextField label=""
-
-
                   disabled={true}
                   value={this.props.task.EFRLibrary} />
               </td>
-            </tr>
+            </tr> */}
             <tr>
               <td>
                 <Label>Assigned To:</Label>
               </td>
               <td>
                 <TextField label=""
-
-
                   disabled={true}
                   value={this.getAssignees(this.props.task.EFRAssignedTo)} />
               </td>
             </tr>
-            <tr>
+            {/* <tr>
               <td>
                 <Label>Information Requested:</Label>
               </td>
@@ -223,19 +222,34 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
                 <div className={styles.informationRequested}
                   dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRInformationRequested)} />
               </td>
-            </tr>
+            </tr> */}
           </table>
         </div >
 
-        <Label className={styles.uploadInstructions} >Please upload the files containing the information requested on or before the Due Date above.
-             You can drag and drop file(s) into the area shaded in blue below, or click the
-             'Choose File' button to select the file(s). Uploaded files  will be automatically prefixed
-             with the reference {this.props.task.Title}.  </Label>
+        <div>
+          Please upload the files containing :
+          <div className={styles.informationRequested} dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRInformationRequested)} />
+
+          for the period:
+          <div className={styles.informationRequested} dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRPeriod)} />
+
+
+          to the {this.props.task.EFRLibrary} library on or before {this.getDateString(this.props.task.EFRDueDate)} .<br />
+          You can drag and drop file(s) into the area shaded in blue below, or click the
+             'Choose File' button to select the file(s). Files uploaded this way will be automatically prefixed
+             with the Reference {this.props.task.Title}.
+       </div>
+        <Label className={styles.uploadInstructions} >
+          Alternatively, you can navigate to the {this.props.task.EFRLibrary} using the navigation bar to the left
+       and upload the files to the library using the SharePoint upload function. Note that if you upload this way
+       the files will not be automatically prefixed with {this.props.task.Title}  YOU must prefix the files with  {this.props.task.Title} before
+       uploading OR ELSE!!
+       </Label>
         <Dropzone className={styles.dropzone} onDrop={this.onDrop.bind(this)} disableClick={true} >
           <div>
             Drag and drop files here to upload, or click Choose File below. Click on a file to view it.
           </div>
-          {/* <div style={{ float: "left" }}> */}
+          <div style={{ float: "left", width:"310px" }}>
             <DetailsList
               layoutMode={DetailsListLayoutMode.fixedColumns}
               items={this.state.documents}
@@ -249,13 +263,20 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
               columns={[
                 {
                   key: "title", name: "File Name",
-                  fieldName: "title", minWidth: 1, maxWidth: 500,
+                  fieldName: "title", minWidth: 1, maxWidth: 200,
                   onRender: this.renderItemTitle.bind(this)
                 },
-
               ]}
             />
-            <input type="file" id="uploadfile" onChange={e => { this.uploadFile(e); }} />
+          </div>
+          <div style={{ float: "right" }}>
+            <DocumentIframe src={this.state.documentCalloutIframeUrl} 
+              height={this.props.documentIframeHeight}
+              width={this.props.documentIframeWidth} />
+          </div>
+          <div style={{ clear: "both" }}></div>
+
+          <input type="file" id="uploadfile" onChange={e => { this.uploadFile(e); }} />
           {/* </div>
           <div style={{ float: "right" }}>
             <DocumentIframe src={this.state.documentCalloutIframeUrl}

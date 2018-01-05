@@ -9,6 +9,7 @@ import {
   IPropertyPaneConfiguration,
   PropertyPaneTextField
 } from "@microsoft/sp-webpart-base";
+import { Environment, EnvironmentType } from '@microsoft/sp-core-library';
 
 import * as strings from "EfrAppWebPartStrings";
 import EfrApp from "./components/EfrApp";
@@ -19,7 +20,7 @@ import { RenderListDataParameters } from "sp-pnp-js";
 import UrlQueryParameterCollection from "@microsoft/sp-core-library/lib/url/UrlQueryParameterCollection";
 import { debounce } from "@microsoft/sp-lodash-subset";
 import CultureInfo from "@microsoft/sp-page-context/lib/CultureInfo";
-import { map } from "lodash";
+import { map, filter } from "lodash";
 import { Document } from "./model";
 export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartProps> {
   public onInit(): Promise<void> {
@@ -32,22 +33,47 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       return this.loadData();
     });
   }
-  public loadData(): Promise<any> {
-    var queryParameters: UrlQueryParameterCollection = new UrlQueryParameterCollection(window.location.href);
-    const itemid = parseInt(queryParameters.getValue("ID"));
-    return pnp.sp.web.lists.
-      getByTitle(this.properties.taskListName).
-      items.getById(itemid).expand("EFRAssignedTo")
-      .select("Title,EFRLibrary,EFRInformationRequested,EFRPeriod,EFRDueDate,EFRAssignedTo/Title").getAs<PBCTask>()
-      .then((task) => {
+  public async loadData(): Promise<any> {
 
+    const list = this.context.pageContext.list;
+    console.log(list);
+    const listitem = this.context.pageContext.listItem;
+    console.log(listitem);
+    let taskListName: string;
+    let itemid: number;
+
+    if (this.context.pageContext.list !== undefined) {
+      taskListName = this.context.pageContext.list.title;
+    } else {
+      taskListName = this.properties.taskListName;
+    }
+    if (this.context.pageContext.listItem !== undefined) {
+      itemid = this.context.pageContext.listItem.id;
+    } else {
+      var queryParameters: UrlQueryParameterCollection = new UrlQueryParameterCollection(window.location.href);
+      itemid = parseInt(queryParameters.getValue("ID"));
+    }
+    console.log("TaskListName is " + taskListName);
+    return pnp.sp.web.lists.
+      getByTitle(taskListName).
+      items.getById(itemid).expand("EFRAssignedTo")
+      .expand("EFRAssignedTo")
+      .select("Title,EFRLibraryId,EFRInformationRequested,EFRPeriod,EFRDueDate,EFRAssignedTo/Title").getAs<PBCTask>()
+
+      .then(async (task) => {
         this.properties.task = task;
-        const libraryName = task.EFRLibrary;
-        return this.getDocuments(libraryName).then((dox) => {
+        this.properties.task.EFRLibrary = await pnp.sp.site.rootWeb.lists.getByTitle("EFRLibraries")
+          .items.getById(parseInt(task.EFRLibraryId)).get().then(efrLib => {
+            return efrLib.Title;
+          }).catch((err) => {
+            debugger;
+            console.log(err);
+            return null;
+          });
+        return this.getDocuments(this.properties.task.EFRLibrary).then((dox) => {
           this.properties.documents = dox;
           return;
         });
-
       }).catch((err) => {
         debugger;
       });
@@ -130,6 +156,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     ReactDom.render(element, this.domElement);
   }
   public getDocuments(library: string, batch?: any): Promise<Array<Document>> {
+
     let docfields = "Id,Title,File/ServerRelativeUrl,File/Length,File/Name,File/MajorVersion,File/MinorVersion";
     let docexpands = "File";
 
@@ -142,13 +169,20 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       command.inBatch(batch);
     }
     return command.get().then((items) => {
-      let docs: Array<Document> = map(items, (f) => {
-        let doc: Document = new Document();
-        doc.id = f["Id"];
-        doc.title = f["Title"];
-        doc.serverRalativeUrl = f["File"]["ServerRelativeUrl"];
-        return doc;
+      let temp: any = filter(items, (i) => {
+
+        return i["File"] !== undefined;
       });
+
+      let docs: Array<Document> =
+        map(temp, (f) => {
+          let doc: Document = new Document();
+
+          doc.id = f["Id"];
+          doc.title = f["Title"];
+          doc.serverRalativeUrl = f["File"]["ServerRelativeUrl"];
+          return doc;
+        });
       return docs;
     });
 
