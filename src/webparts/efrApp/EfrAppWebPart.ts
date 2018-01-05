@@ -7,7 +7,7 @@ import { SearchQuery, SearchResults, SortDirection, EmailProperties, Items } fro
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
-  PropertyPaneTextField
+  PropertyPaneTextField,PropertyPaneSlider
 } from "@microsoft/sp-webpart-base";
 import { Environment, EnvironmentType } from '@microsoft/sp-core-library';
 
@@ -23,6 +23,9 @@ import CultureInfo from "@microsoft/sp-page-context/lib/CultureInfo";
 import { map, filter } from "lodash";
 import { Document } from "./model";
 export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartProps> {
+  private documentsListName: string;
+  private task: PBCTask;
+  private documents: Array<Document>;
   public onInit(): Promise<void> {
     return super.onInit().then(_ => {
 
@@ -61,8 +64,8 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       .select("Title,EFRLibraryId,EFRInformationRequested,EFRPeriod,EFRDueDate,EFRAssignedTo/Title").getAs<PBCTask>()
 
       .then(async (task) => {
-        this.properties.task = task;
-        this.properties.task.EFRLibrary = await pnp.sp.site.rootWeb.lists.getByTitle("EFRLibraries")
+        this.task = task;
+        this.task.EFRLibrary = await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.EFRLibrariesListName)
           .items.getById(parseInt(task.EFRLibraryId)).get().then(efrLib => {
             return efrLib.Title;
           }).catch((err) => {
@@ -70,8 +73,8 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
             console.log(err);
             return null;
           });
-        return this.getDocuments(this.properties.task.EFRLibrary).then((dox) => {
-          this.properties.documents = dox;
+        return this.getDocuments(this.task.EFRLibrary).then((dox) => {
+          this.documents = dox;
           return;
         });
       }).catch((err) => {
@@ -115,7 +118,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     } else {
 
 
-      return pnp.sp.web.lists.getByTitle(this.properties.documentsListName).rootFolder.files
+      return pnp.sp.web.lists.getByTitle(this.documentsListName).rootFolder.files
         .addChunked(fileName, file, data => {
           console.log({ data: data, message: "progress" });
         }, true)
@@ -142,14 +145,14 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     const element: React.ReactElement<IEfrAppProps> = React.createElement(
       EfrApp,
       {
-        task: this.properties.task,
-        documents: this.properties.documents,
+        task: this.task,
+        documents: this.documents,
         uploadFile: this.uploadFile.bind(this),
         cultureName: this.context.pageContext.cultureInfo.currentCultureName,
         fetchDocumentWopiFrameURL: this.fetchDocumentWopiFrameURL.bind(this),
         getDocuments: this.getDocuments.bind(this),
-        documentIframeWidth: 200,
-        documentIframeHeight: 200
+        documentIframeWidth: this.properties.documentIframeWidth,
+        documentIframeHeight: this.properties.documentIframeHeight
       }
     );
 
@@ -189,13 +192,12 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
   }
 
   /**
-   * A method to fetch the WopiFrameURL for a Document in the TR Documents library.
+   * A method to fetch the WopiFrameURL for a Document in the  Documents library.
    * This url is used to display the document in the iframs
    * @param {number} id the listitem id of the document in the TR Document Libtry
    * @param {number} mode  The displayMode in the retuned url (display, edit, etc.)
    * @returns {Promise<string>} The url used to display the document in the iframe
    * 
-   * @memberof TrFormWebPart
    */
   public fetchDocumentWopiFrameURL(id: number, mode: number, library: string): Promise<string> {
     console.log("In fetchDocumentWopiFrameURL");
@@ -219,8 +221,27 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField("description", {
-                  label: strings.DescriptionFieldLabel
+                PropertyPaneTextField("EFRLibrariesListName", {
+                  label: "Name of the list in the rootweb that holds the list of Libraries"
+                }),
+                PropertyPaneTextField("taskListName", {
+                  label: "Task List Name (only used in dev mode)"
+                }),
+    
+                PropertyPaneSlider('documentIframeHeight', {
+                  label: "Hight of Iframe used to show Documents",
+                  min: 100,
+                  max: 2000,
+                  step: 5,
+                  showValue: true
+                }),
+
+                PropertyPaneSlider('documentIframeWidth', {
+                  label: "Width of Iframe used to show Documents",
+                  min: 100,
+                  max: 2000,
+                  step: 5,
+                  showValue: true
                 })
               ]
             }
