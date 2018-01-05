@@ -156,7 +156,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       contextInfo = context;
     });
     // create the site
-    await pnp.sp.web.webs.add(this.state.siteName, this.state.siteName, this.state.siteName, "STS#0").then((war: WebAddResult) => {
+    await pnp.sp.web.webs.add(this.state.siteName, this.state.siteName, this.state.siteName, this.props.templateName).then((war: WebAddResult) => {
       this.addMessage("CreatedSite");
 
       // show the response from the server when adding the web
@@ -176,7 +176,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
 
     // now get  the list of libraries we need to create on the new site
-    await pnp.sp.web.lists.getByTitle("EFRLibraries").items
+    await pnp.sp.web.lists.getByTitle(this.props.EFRLibrariesListName).items
       //   .top(2)
       .get().then((libraries) => {
         this.addMessage("got list of libraries");
@@ -190,7 +190,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         return;
       });
     // now get  the list of folders  we need to create in each library
-    foldersList = await pnp.sp.web.lists.getByTitle("EFRFolders").items.get().then((folders) => {
+    foldersList = await pnp.sp.web.lists.getByTitle(this.props.EFRFoldersListName).items.get().then((folders) => {
       this.addMessage("got list of folders");
       return map(folders, (f) => { return f["Title"] });
     }).catch(error => {
@@ -283,8 +283,8 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
           //    return;
 
           //  });
-
-          await list.breakRoleInheritance(true).then((e) => {
+          // Setup securitty on the lisbtrary. First, break role inheritance
+          await list.breakRoleInheritance(false).then((e) => {
             this.addMessage("broke role inheritance on " + library["Title"]);
           }).catch(error => {
             debugger;
@@ -293,12 +293,14 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
             console.error(error);
             return;
           });
+          // second , add the library-specific group
+
           let group = find(siteGroups, (sg => { return sg["Title"] === library["EFRsecurityGroup"]; }));
           let principlaID = group["Id"];
           let roledef = find(roleDefinitions, (rd => { return rd["Name"] === "Content Authors without delete or modify"; }));
           let roleDefId = roledef["Id"];
-          await list.roleAssignments.add(principlaID, roleDefId).then(xxx => {
-            this.addMessage("granted " + library["EFRsecurityGroup"] + "access to " + library["Title"]);
+          await list.roleAssignments.add(principlaID, roleDefId).then(() => {
+            this.addMessage("granted " + library["EFRsecurityGroup"] + " read access to " + library["Title"]);
           }).catch(error => {
             debugger;
             this.addMessage("<h1>error adding role asisigment to  library " + library["Title"] + "</h1>");
@@ -306,26 +308,55 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
             console.error(error);
             return;
           });
-        }).catch(error => {
-          debugger;
-          this.addMessage("<h1>error creating library" + library["Title"] + "</h1>");
-          this.addMessage(error.data.responseBody["odata.error"].message.value);
-          console.error(error);
-          return;
+          // third  , add the global read access grouops
+          for (let readgroupname of this.props.ReadAccessGroups.split(',')) {
+
+            let readgroup = find(siteGroups, (sg => { return sg["Title"] === readgroupname; }));
+            let readprinciplaID = readgroup["Id"];
+            let readroledef = find(roleDefinitions, (rd => { return rd["Name"] === "Read"; }));
+            let readroleDefId = readroledef["Id"];
+            await list.roleAssignments.add(readprinciplaID, readroleDefId).then(() => {
+              this.addMessage("granted " + readgroupname + "access to " + library["Title"]);
+            }).catch(error => {
+              debugger;
+              this.addMessage("<h1>error adding role asisigment to  library " + library["Title"] + "</h1>");
+              this.addMessage(error.data.responseBody["odata.error"].message.value);
+              console.error(error);
+              return;
+            });
+          }
+
+          // fourth   , add the global write  access grouops
+          for (let writegroupname of this.props.WriteAccessGroups.split(',')) {
+
+            let writegroup = find(siteGroups, (sg => { return sg["Title"] === writegroupname; }));
+            let writeprinciplaID = writegroup["Id"];
+            let writeroledef = find(roleDefinitions, (rd => { return rd["Name"] === "Contribute"; }));
+            let writeroleDefId = writeroledef["Id"];
+            await list.roleAssignments.add(writeprinciplaID, writeroleDefId).then(() => {
+              this.addMessage("granted " + writegroupname + " Contribute  access to " + library["Title"]);
+            }).catch(error => {
+              debugger;
+              this.addMessage("<h1>error adding role asisigment to  library " + library["Title"] + "</h1>");
+              this.addMessage(error.data.responseBody["odata.error"].message.value);
+              console.error(error);
+              return;
+            });
+          }
         });
       }
 
     }
     // get the master list of tasks
-    await pnp.sp.web.lists.getByTitle("PBCMaster").items.expand("EFRLibrary").select("*,EFRLibrary/Title")
-      .top(500)
+    await pnp.sp.web.lists.getByTitle(this.props.PBCMasterList).items.expand("EFRLibrary").select("*,EFRLibrary/Title")
+      .top(this.props.PBCMaximumTasks)
       .get().then((efrtasks) => {
-        this.addMessage("got tsakMaster list");
+        this.addMessage("got PBC MASTER list");
         tasks = efrtasks;
         return;
       }).catch(error => {
         debugger;
-        this.addMessage("<h1>error fetching taskmaster</h1>");
+        this.addMessage("<h1>error fetching PBC MASTER list</h1>");
         this.addMessage(error.data.responseBody["odata.error"].message.value);
         console.error(error);
         return;
@@ -384,7 +415,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     });
     await this.AddWebPartToEditForm(webServerRelativeUrl, editformurl, this.props.webPartXml);
     //add the PBC Task content type
-    await taskList.contentTypes.addAvailableContentType("0x0100F2A5ABE2D8166E4E9A3C888E1DB4DC8B").then(ct => {
+    await taskList.contentTypes.addAvailableContentType(this.props.PBCTaskContentTypeId).then(ct => {
       this.addMessage("Added EFR Task content type");
       return;
     }).catch(error => {
@@ -429,17 +460,6 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       RowLimit: 10,
       ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="TRUE" /></OrderBy><Where><Eq><FieldRef Name="EFRVerifiedByAdmin" /><Value Type="Text">No</Value></Eq></Where>'
     }).then(async (v: ViewAddResult) => {
-      // set this as the homePage
-      let homepage = v.data.ServerRelativeUrl.substr(webServerRelativeUrl.length + 1);
-      await newWeb.rootFolder.update({ "WelcomePage": homepage }).then(() => {
-        this.addMessage("Set Site homepage to this view");
-      }).catch(error => {
-        debugger;
-        this.addMessage("<h1>error setting site home page</h1>");
-        this.addMessage(error.data.responseBody["odata.error"].message.value);
-        console.error(error);
-        return;
-      });
       // manipulate the view's fields
       debugger;
       await v.view.fields.removeAll().catch((err) => { debugger; });
@@ -448,7 +468,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       await v.view.fields.add("EFRDueDate").catch((err) => { debugger; });
       await v.view.fields.add("EFRAssignedTo").catch((err) => { debugger; });
       await v.view.fields.add("EFRCompletedByUser").catch((err) => { debugger; });
-      this.addMessage("Added My Open Tasks View");
+      this.addMessage("Added All  Open Tasks View");
       return;
 
 
@@ -485,7 +505,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     for (const task of tasks) {
 
       let itemToAdd = {
-        "ContentTypeId": "0x0100F2A5ABE2D8166E4E9A3C888E1DB4DC8B",
+        "ContentTypeId": this.props.PBCTaskContentTypeId,
         "Title": task.Title,
         "EFRDueDate": task.DueDate,
         "EFRAssignedToId": {
@@ -498,11 +518,11 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         "EFRVerifiedByAdmin": "No"
       };
       await taskList.items.add(itemToAdd).then((results) => {
-        this.addMessage("added task" + task.Title);
+        this.addMessage("added task " + task.Title);
         return;
       }).catch(error => {
         debugger;
-        this.addMessage("<h1>error adding task library" + task["Title"] + "</h1>");
+        this.addMessage("<h1>error adding task " + task["Title"] + "</h1>");
         this.addMessage(error.data.responseBody["odata.error"].message.value);
         console.error(error);
         return;

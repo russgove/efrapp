@@ -28,7 +28,8 @@
         "taskListName": "EFRTasks",
         "documentIframeWidth": 500,
         "documentIframeHeight": 500,
-        "EFRLibrariesListName":"EFRLibraries"
+        "EFRLibrariesListName":"EFRLibraries",
+        "EFRFoldersListName":"EFRFolders"
       }
     }
   ]

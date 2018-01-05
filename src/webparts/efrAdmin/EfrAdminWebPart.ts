@@ -4,7 +4,7 @@ import { Version } from '@microsoft/sp-core-library';
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
-  PropertyPaneTextField
+  PropertyPaneTextField,PropertyPaneSlider
 } from '@microsoft/sp-webpart-base';
 
 import * as strings from 'EfrAdminWebPartStrings';
@@ -13,17 +13,22 @@ import { IEfrAdminProps } from './components/IEfrAdminProps';
 import pnp from "sp-pnp-js";
 export interface IEfrAdminWebPartProps {
   webPartXml: string;
-  workflowName:string; // the name of the workflow to add to the EFR Task list
+  templateName:string; // the template used to create subsites
+  EFRLibrariesListName:string; // the list of libraries to create in each subsite
+  EFRFoldersListName:string; // the list of folders to create in each library
+  WriteAccessGroups: string; // comma separed list of groups that get write access to ALL librries "EFR Site Admins",
+  ReadAccessGroups: string ;// comma separed list of groups that get read access to ALL librries "EFR Visitors"
+  PBCMasterList:string; // the masater list of tasks to be copied to the created subsite
+  PBCMaximumTasks:number, // can up thi sto 2000, then need to break into multiple calls
+  PBCTaskContentTypeId:string, // the content type id to add to the EFR task list in the subsite 
 }
 
 export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebPartProps> {
   public onInit(): Promise<void> {
     return super.onInit().then(_ => {
-
       pnp.setup({
         spfxContext: this.context,
       });
-
       return;
     });
   }
@@ -33,7 +38,15 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
       EfrAdmin,
       {
         webPartXml: this.properties.webPartXml,
-        workflowName:this.properties.workflowName
+        templateName:this.properties.templateName,
+        EFRLibrariesListName:this.properties.EFRLibrariesListName,
+        EFRFoldersListName:this.properties.EFRFoldersListName,
+        WriteAccessGroups:this.properties.WriteAccessGroups,
+        ReadAccessGroups:this.properties.ReadAccessGroups,
+        PBCMasterList:this.properties.PBCMasterList,
+        PBCMaximumTasks:this.properties.PBCMaximumTasks,
+        PBCTaskContentTypeId:this.properties.PBCTaskContentTypeId
+
       }
     );
 
@@ -55,7 +68,35 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-              
+                PropertyPaneTextField("templateName", {
+                  label: "Template used to create subsites (STS#0)"
+                }),
+                PropertyPaneTextField("PBCMasterList", {
+                  label: "The name of the list that contains the tasks to be created on each subsite (PBCMaster)  "
+                }),
+                PropertyPaneSlider('PBCMaximumTasks', {
+                  label: "Maximum number of tasks to read from PBCMasterList",
+                  min: 1,
+                  max: 2000,
+                  step: 100,
+                  showValue: true
+                }),
+                PropertyPaneTextField("EFRLibrariesListName", {
+                  label: "The list of libraries to be created in each subsite (EFRLibraries)"
+                }),
+                PropertyPaneTextField("EFRFoldersListName", {
+                  label: "The list of folders to be created in each library (EFRFolders)"
+                }),
+                PropertyPaneTextField("ReadAccessGroups", {
+                  label: "A comma-separated list of groups that get read access to ALL libraries (EFR Visitors)  "
+                }),
+                PropertyPaneTextField("WriteAccessGroups", {
+                  label: "A comma-separated list of groups that get CONTRIBUTE access to ALL libraries (EFR Site Admins)  "
+                }),
+                PropertyPaneTextField("PBCTaskContentTypeId", {
+                  label: "The ContentType ID to be added to the EFR Task list (0x0100F2A5ABE2D8166E4E9A3C888E1DB4DC8B)"
+                 
+                }),
                 
                  
 
