@@ -97,6 +97,10 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
                   label: "The ContentType ID to be added to the EFR Task list (0x0100F2A5ABE2D8166E4E9A3C888E1DB4DC8B)"
                  
                 }),
+                PropertyPaneTextField("webPartXml", {
+                  label: "The xml of the wabart to be added to the task edit form"
+                 
+                }),
                 
                  
 
