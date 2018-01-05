@@ -70,7 +70,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
             return efrLib.Title;
           }).catch((err) => {
             debugger;
-            console.log(err);
+            console.error(err);
             return null;
           });
         return this.getDocuments(this.task.EFRLibrary).then((dox) => {
@@ -78,7 +78,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
           return;
         });
       }).catch((err) => {
-        debugger;
+        console.error(err)
       });
 
   }
@@ -107,13 +107,13 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
               return;
             }).catch((err) => {
               debugger;
-              console.log(err);
+              console.error(err);
             });
           });
 
 
         }).catch((error) => {
-          console.log(error);
+          console.error(error);
         });
     } else {
 

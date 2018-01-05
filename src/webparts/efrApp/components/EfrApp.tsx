@@ -157,6 +157,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
   }
   public render(): React.ReactElement<IEfrAppProps> {
     console.log("in render");
+    debugger;
     return (
       <div className={styles.efrApp}>
         <div className={styles.headerArea}>
