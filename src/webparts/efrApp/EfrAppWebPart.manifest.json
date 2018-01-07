@@ -29,7 +29,9 @@
         "documentIframeWidth": 500,
         "documentIframeHeight": 500,
         "EFRLibrariesListName":"EFRLibraries",
-        "EFRFoldersListName":"EFRFolders"
+        "EFRFoldersListName":"EFRFolders",
+        "taskCompletionNotificationGroups":"testgroup",
+        "copyAllAssigneesOnCompletionNotice":true
       }
     }
   ]

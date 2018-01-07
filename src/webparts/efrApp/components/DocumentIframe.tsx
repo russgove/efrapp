@@ -10,6 +10,18 @@ export class DocumentIframe extends React.Component<IDocumentIframeProps, {}>{
         const heightAttr:string=this.props.height+"px";
         const widthAttr:string=this.props.width+"px";
             console.log("iframe source set to " + this.props.src);
-        return (<iframe src={this.props.src} height={heightAttr} width={widthAttr}/>);
+        return (<iframe 
+            src={this.props.src}
+             height={heightAttr}
+              width={widthAttr}
+              onDragOver={(e)=>{
+                  debugger;
+                  e.preventDefault();
+              }}
+              onDrop={(e)=>{
+                debugger;
+                e.preventDefault();
+            }}
+              />);
     }
 }

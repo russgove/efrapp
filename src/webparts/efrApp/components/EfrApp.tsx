@@ -5,8 +5,11 @@ import { IEfrAppProps } from './IEfrAppProps';
 import { IEfrAppState } from './IEfrAppState';
 import { escape } from '@microsoft/sp-lodash-subset';
 import { PageContext } from "@microsoft/sp-page-context";
-import { PrimaryButton, ButtonType } from "office-ui-fabric-react/lib/Button";
+import { PrimaryButton, ButtonType, CompoundButton, } from "office-ui-fabric-react/lib/Button";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
+import {
+  NormalPeoplePicker, TagPicker, ITag
+} from "office-ui-fabric-react/lib/Pickers";
 
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
 import { Label } from "office-ui-fabric-react/lib/Label";
@@ -28,18 +31,36 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
   public constructor(props: IEfrAppProps) {
     super();
     console.log("in Construrctor");
+    this.CloseButton = this.CloseButton.bind(this);
+    this.CompleteButton = this.CompleteButton.bind(this);
     this.state = {
       documentCalloutIframeUrl: "",
       documents: props.documents
     };
   }
+  /**
+   * comverts html to an onject for use in dangerouslySetInnerHTML
+   * 
+   * @param {any} html 
+   * @returns 
+   * @memberof EfrApp
+   */
   public createSummaryMarkup(html) {
     console.log("in createSummaryMarkup");
     return { __html: html };
   }
+  /**
+   * Called when a user drops files into the DropZone. It calls 
+   * the uploadFile method on the props to upload the files to sharepoint and then adds them to state.
+   * 
+   * @private
+   * @param {any} acceptedFiles 
+   * @param {any} rejectedFiles 
+   * @memberof EfrApp
+   */
   private onDrop(acceptedFiles, rejectedFiles) {
     console.log("in onDrop");
-      let promises: Array<Promise<any>> = [];
+    let promises: Array<Promise<any>> = [];
     acceptedFiles.forEach(file => {
       promises.push(this.props.uploadFile(file, this.props.task.EFRLibrary, this.props.task.Title));
     });
@@ -51,6 +72,13 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     });
 
   }
+  /**
+   * This method is called when the user uploads sa file using the Add file button. It calls 
+   * the uploadFile method on the props to upload the files to sharepoint and then adds them to state.
+   * 
+   * @param {*} e 
+   * @memberof EfrApp
+   */
   public uploadFile(e: any) {
 
     let file: any = e.target["files"][0];
@@ -63,6 +91,14 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
       console.error(error);
     });
   }
+  /**
+   * Gets a date, formatted as a string for display. It uses the ussers Culture so that 
+   * dates are formatted properly for Australian users/
+   * 
+   * @param {string} dateString 
+   * @returns {string} 
+   * @memberof EfrApp
+   */
   public getDateString(dateString: string): string {
     console.log("in getDateString");
 
@@ -74,17 +110,22 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
       .toLocaleDateString(this.props.cultureName, options);
 
   }
+  /**
+   * This is called when the user hovers over a document in the list. It callse the fetchDocumentWopiFrameURL
+   * in the props to het th url, and then sets the url in state toi have the iframe display the document.
+   * 
+   * @param {Document} document 
+   * @param {*} e 
+   * @memberof EfrApp
+   */
   public documentRowMouseEnter(document: Document, e: any) {
     console.log("in documentRowMouseEnter");
-
+    debugger;
     // mode passed to fetchDocumentWopiFrameURL: 0: view, 1: edit, 2: mobileView, 3: interactivePreview
     this.props.fetchDocumentWopiFrameURL(document.id, 0, this.props.task.EFRLibrary).then(url => {
-      if (!url || url === "") {
-        url = document.serverRalativeUrl;
-      }
-      // this.state.documentCalloutIframeUrl = url;
-      // this.state.documentCalloutTarget = e.target;
-      // this.state.documentCalloutVisible = true;
+      // if (!url || url === "") {  // is this causing the download when i hove over a non office doc?
+      //   url = document.serverRalativeUrl;
+      // }
       this.setState((current) => ({
         ...current,
         documentCalloutIframeUrl: url,
@@ -94,11 +135,32 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
 
     });
   }
+  /**
+   * Determines if a task is assigned to the current user
+   * 
+   * @param {PBCTask} task 
+   * @returns {boolean} 
+   * @memberof EfrApp
+   */
+  public userIsAssignedTask(task: PBCTask): boolean {
+    debugger;
+    for (var assignee of task.EFRAssignedTo) {
+      if (assignee.UserName.toUpperCase() === this.props.currentUserLoginName.toUpperCase()) {
+        return true;
+      }
+    }
+    return false;
+  }
+  /**
+   * called when a user mouses out of a document row. Sets the url to null in state so th eiframe no longer
+   * shows the documentt
+   * 
+   * @param {Document} item 
+   * @param {*} e 
+   * @memberof EfrApp
+   */
   public documentRowMouseOut(item: Document, e: any) {
     console.log("in documentRowMouseOut");
-
-    // this.state.documentCalloutTarget = null;
-    // this.state.documentCalloutVisible = false;
     this.setState((current) => ({
       ...current,
       documentCalloutTarget: null,
@@ -106,11 +168,8 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     }));
     console.log("mouse exit for " + item.title);
   }
-  public editDocument(document: Document): void {
+  public openDocument(document: Document): void {
     console.log("in editDocument");
-
- 
-
     // mode: 0: view, 1: edit, 2: mobileView, 3: interactivePreview
     this.props.fetchDocumentWopiFrameURL(document.id, 0, this.props.task.EFRLibrary).then(url => {
       console.log("wopi frame url is " + url);
@@ -126,10 +185,10 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     });
 
   }
-  public getAssignees(assignees: Array<{}>): string {
-    let result = "";
+  public getAssignees(assignees: Array<{}>): Array<ITag> {
+    let result: ITag[] = [];
     for (let assignee of assignees) {
-      result += assignee["Title"] + ";  ";
+      result.push({ key: assignee["Title"], name: assignee["Title"] });
     }
     return result;
   }
@@ -150,82 +209,116 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
         <div className={classname} /> &nbsp;
         <a href="#"
           onClickCapture={(e) => {
-            
-              e.preventDefault();
-               this.editDocument(item); return false; }}><span className={styles.documentTitle} > {item.title}</span></a>
+
+            e.preventDefault();
+            this.openDocument(item); return false;
+          }}><span className={styles.documentTitle} > {item.title}</span></a>
       </div>);
   }
+  private completeTask(e): void {
+    this.props.completeTask(this.props.task);
+  }
+  private closeWindow(): void {
+    this.props.closeWindow();
+  }
+  /**
+   * This button  marks the task as complete and closes the window, retruning to whatever
+   * the url specified in the source  query string parameters. 
+   * An email  is sent to the users of a group specified in the proertypane to notify them that the task is
+   * complete.
+   * 
+   * @private
+   * @returns {JSX.Element} 
+   * @memberof EfrApp
+   */
+  private CompleteButton(): JSX.Element {
+    debugger;
+    if (!this.userIsAssignedTask(this.props.task)) { // dont show the button if its not my task
+      return (<div />);
+    }
+    if (this.props.task.EFRCompletedByUser === "Yes") { // dont show the button if task is complete
+      return (<div />);
+    }
+    return (
+      <div>
+        <CompoundButton onClick={this.completeTask.bind(this)} description='Click here to close this window and  mark this task as complete.'  >
+          I have uploaded all the information requested
+  </CompoundButton>
+
+      </div>
+    );
+  }
+  /**
+   *  closes the window, retuning to whatever
+   * the url specified in the source  query string parameters. 
+   * 
+   * @private
+   * @returns {JSX.Element} 
+   * @memberof EfrApp
+   */
+  private CloseButton(): JSX.Element {
+    debugger;
+
+    return (
+      <div>
+        <CompoundButton onClick={this.closeWindow.bind(this)} description='Click here to close this window.'  >
+          Close Window
+  </CompoundButton>
+
+      </div>
+    );
+  }
+  /**
+   * renders the page
+   * 
+   * @returns {React.ReactElement<IEfrAppProps>} 
+   * @memberof EfrApp
+   */
   public render(): React.ReactElement<IEfrAppProps> {
     console.log("in render");
     debugger;
     return (
       <div className={styles.efrApp}>
         <div className={styles.headerArea}>
-          <table>
-            <tr>
-              <td>
-                <Label>Reference #:</Label>
-              </td>
-              <td>
-                <TextField label=""
+          <div style={{ float: "left", width: "50%" }}>
+            <table>
+              <tr>
+                <td>
+                  <Label>Reference #:</Label>
+                </td>
+                <td>
+                  <TextField label=""
 
-                  disabled={true}
-                  value={this.props.task.Title} />
-              </td>
-            </tr>
-            {/* <tr>
-              <td>
-                <Label>Due Date:</Label>
-              </td>
-              <td>
-                <TextField label=""
+                    disabled={true}
+                    value={this.props.task.Title} />
+                </td>
+              </tr>
 
+              <tr>
+                <td>
+                  <Label>Assigned To:</Label>
+                </td>
+                <td>
+                  <TagPicker
+                    disabled={true}
+                    onResolveSuggestions={null}
+                    defaultSelectedItems={this.getAssignees(this.props.task.EFRAssignedTo)}
+                  />
+                  {/* <TextField label=""
+                    disabled={true}
+                    value={this.getAssignees(this.props.task.EFRAssignedTo)} /> */}
+                </td>
+              </tr>
 
-                  disabled={true}
-                  value={this.getDateString(this.props.task.EFRDueDate)} />
-              </td>
-            </tr> */}
-            {/* <tr>
-              <td>
-                <Label>Period:</Label>
-              </td>
-              <td>
-                <div className={styles.informationRequested}
-                  dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRPeriod)} />
+            </table>
+          </div >
+          <div style={{ float: "left", width: "50%" }}>
+            <this.CompleteButton />
+            <this.CloseButton />
 
-              </td>
-            </tr> */}
-            {/* <tr>
-              <td>
-                <Label>Library:</Label>
-              </td>
-              <td>
-                <TextField label=""
-                  disabled={true}
-                  value={this.props.task.EFRLibrary} />
-              </td>
-            </tr> */}
-            <tr>
-              <td>
-                <Label>Assigned To:</Label>
-              </td>
-              <td>
-                <TextField label=""
-                  disabled={true}
-                  value={this.getAssignees(this.props.task.EFRAssignedTo)} />
-              </td>
-            </tr>
-            {/* <tr>
-              <td>
-                <Label>Information Requested:</Label>
-              </td>
-              <td>
-                <div className={styles.informationRequested}
-                  dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRInformationRequested)} />
-              </td>
-            </tr> */}
-          </table>
-        </div >
+          </div>
+          <div style={{ clear: "both" }}></div>
+        </div>
 
         <div>
           Please upload the files containing :
@@ -250,7 +343,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
           <div>
             Drag and drop files here to upload, or click Choose File below. Click on a file to view it.
           </div>
-          <div style={{ float: "left", width:"310px" }}>
+          <div style={{ float: "left", width: "310px" }}>
             <DetailsList
               layoutMode={DetailsListLayoutMode.fixedColumns}
               items={this.state.documents}
@@ -271,21 +364,13 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
             />
           </div>
           <div style={{ float: "right" }}>
-            <DocumentIframe src={this.state.documentCalloutIframeUrl} 
+            <DocumentIframe src={this.state.documentCalloutIframeUrl}
               height={this.props.documentIframeHeight}
               width={this.props.documentIframeWidth} />
           </div>
           <div style={{ clear: "both" }}></div>
 
           <input type="file" id="uploadfile" onChange={e => { this.uploadFile(e); }} />
-          {/* </div>
-          <div style={{ float: "right" }}>
-            <DocumentIframe src={this.state.documentCalloutIframeUrl}
-              height={this.props.documentIframeHeight}
-              width={this.props.documentIframeWidth} />
-          </div>
-          <div style={{ clear: "both" }}></div> */}
-
         </Dropzone>
 
       </div>

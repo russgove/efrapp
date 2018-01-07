@@ -19,8 +19,8 @@ export interface IEfrAdminWebPartProps {
   WriteAccessGroups: string; // comma separed list of groups that get write access to ALL librries "EFR Site Admins",
   ReadAccessGroups: string ;// comma separed list of groups that get read access to ALL librries "EFR Visitors"
   PBCMasterList:string; // the masater list of tasks to be copied to the created subsite
-  PBCMaximumTasks:number, // can up thi sto 2000, then need to break into multiple calls
-  PBCTaskContentTypeId:string, // the content type id to add to the EFR task list in the subsite 
+  PBCMaximumTasks:number; // can up thi sto 2000, then need to break into multiple calls
+  PBCTaskContentTypeId:string; // the content type id to add to the EFR task list in the subsite 
 }
 
 export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebPartProps> {

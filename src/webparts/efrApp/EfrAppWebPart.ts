@@ -1,13 +1,13 @@
 import * as React from "react";
 import { PBCTask } from "./model";
 import * as ReactDom from "react-dom";
-import { Version } from "@microsoft/sp-core-library";
-import { SearchQuery, SearchResults, SortDirection, EmailProperties, Items } from "sp-pnp-js";
+import { Version, UrlQueryParameterCollection } from "@microsoft/sp-core-library";
+import pnp, { SearchQuery, SearchResults, SortDirection, EmailProperties, Items } from "sp-pnp-js";
 
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
-  PropertyPaneTextField,PropertyPaneSlider
+  PropertyPaneTextField, PropertyPaneSlider, PropertyPaneToggle
 } from "@microsoft/sp-webpart-base";
 import { Environment, EnvironmentType } from '@microsoft/sp-core-library';
 
@@ -15,9 +15,9 @@ import * as strings from "EfrAppWebPartStrings";
 import EfrApp from "./components/EfrApp";
 import { IEfrAppProps } from "./components/IEfrAppProps";
 import { IEfrAppWebPartProps } from "./IEfrAppWebPartProps";
-import pnp from "sp-pnp-js";
+
 import { RenderListDataParameters } from "sp-pnp-js";
-import UrlQueryParameterCollection from "@microsoft/sp-core-library/lib/url/UrlQueryParameterCollection";
+//import UrlQueryParameterCollection from "@microsoft/sp-core-library/lib/url/UrlQueryParameterCollection";
 import { debounce } from "@microsoft/sp-lodash-subset";
 import CultureInfo from "@microsoft/sp-page-context/lib/CultureInfo";
 import { map, filter } from "lodash";
@@ -44,7 +44,6 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     console.log(listitem);
     let taskListName: string;
     let itemid: number;
-
     if (this.context.pageContext.list !== undefined) {
       taskListName = this.context.pageContext.list.title;
     } else {
@@ -57,11 +56,12 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       itemid = parseInt(queryParameters.getValue("ID"));
     }
     console.log("TaskListName is " + taskListName);
+    debugger;
     return pnp.sp.web.lists.
       getByTitle(taskListName).
       items.getById(itemid).expand("EFRAssignedTo")
       .expand("EFRAssignedTo")
-      .select("Title,EFRLibraryId,EFRInformationRequested,EFRPeriod,EFRDueDate,EFRAssignedTo/Title").getAs<PBCTask>()
+      .select("Title,Id,EFRCompletedByUser,EFRLibraryId,EFRInformationRequested,EFRPeriod,EFRDueDate,EFRDateCompleted,EFRAssignedTo/Title,EFRAssignedTo/UserName,EFRAssignedTo/EMail").getAs<PBCTask>()
 
       .then(async (task) => {
         this.task = task;
@@ -78,7 +78,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
           return;
         });
       }).catch((err) => {
-        console.error(err)
+        console.error(err);
       });
 
   }
@@ -141,6 +141,85 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
         });
     }
   }
+
+  private async getEmailAddressesFromGroups(sharePointGroups: string): Promise<Array<string>> {
+    debugger;
+    let emailAddresses: Array<string> = [];
+    for (let sharePointGroup of sharePointGroups.split(',')) {
+      await pnp.sp.web.siteGroups.getByName(sharePointGroup.trim()).users.get().then((users)=> {
+        debugger;
+        for (let user of users) {
+          emailAddresses.push(user.Email);
+        }
+      });
+    }
+    return emailAddresses;
+  }
+  public async completeTask(task: PBCTask) {
+    debugger;
+    const updates = {
+      "EFRCompletedByUser": "Yes",
+      "EFRDateCompleted": new Date().toISOString()
+    };
+    await pnp.sp.web.lists.getByTitle(this.properties.taskListName).items.getById(task.Id).update(updates).catch((err) => {
+      console.error(err);
+      alert("There was ean error updating this task");
+    }).catch((err) => {
+      console.error(err);
+      debugger;
+      alert("There was ean error updating this task");
+    });
+    let toAddresses: Array<string>;
+    debugger;
+    await this.getEmailAddressesFromGroups(this.properties.taskCompletionNotificationGroups).then((emails) => {
+      debugger;
+      toAddresses = emails;
+    }).catch((err) => {
+      console.error(err);
+      alert("There was ean error updating this task");
+    });
+    let ccAddresses: Array<string>;
+    if (this.properties.copyAllAssigneesOnCompletionNotice) {
+      ccAddresses = task.EFRAssignedTo.map((assignee) => {
+        debugger;
+        return assignee.EMail;
+      });
+    } else {
+      ccAddresses = [this.context.pageContext.user.email];
+    }
+
+    let emailprops: EmailProperties = {
+      To: toAddresses,
+      CC: ccAddresses,
+      Subject: "Task " + task.Title + " has been marked complete by " + this.context.pageContext.user.email,
+      Body: this.context.pageContext.user.email + " has confirmed that " + task.EFRInformationRequested + " has been uploaded to the library " + task.EFRLibrary,
+      From: "Tronox External Financial Reporting"
+    };
+
+    console.log("Sending email:");
+    console.log(emailprops);
+    await pnp.sp.utility.sendEmail(emailprops)
+      .then((x) => {
+        debugger;
+      }).catch((err) => {
+        debugger;
+        console.error(err);
+        alert('Error sending email');
+      });
+
+    // close the window
+    this.closeWindow();
+
+  }
+  public closeWindow() {
+    let source = new UrlQueryParameterCollection(window.location.href).getValue("Source");
+    source = decodeURIComponent(source);
+    console.log('source is querystring parameter is ' + source);
+    if (source) {
+      console.log('transferring to ' + source);
+      window.location.href = source;
+    }
+  }
   public render(): void {
     const element: React.ReactElement<IEfrAppProps> = React.createElement(
       EfrApp,
@@ -152,7 +231,10 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
         fetchDocumentWopiFrameURL: this.fetchDocumentWopiFrameURL.bind(this),
         getDocuments: this.getDocuments.bind(this),
         documentIframeWidth: this.properties.documentIframeWidth,
-        documentIframeHeight: this.properties.documentIframeHeight
+        documentIframeHeight: this.properties.documentIframeHeight,
+        currentUserLoginName: this.context.pageContext.user.loginName,
+        completeTask: this.completeTask.bind(this),
+        closeWindow: this.closeWindow.bind(this)
       }
     );
 
@@ -227,7 +309,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
                 PropertyPaneTextField("taskListName", {
                   label: "Task List Name (only used in dev mode)"
                 }),
-    
+
                 PropertyPaneSlider('documentIframeHeight', {
                   label: "Hight of Iframe used to show Documents",
                   min: 100,
@@ -242,7 +324,17 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
                   max: 2000,
                   step: 5,
                   showValue: true
-                })
+                }),
+                PropertyPaneToggle('copyAllAssigneesOnCompletionNotice', {
+                  label: "Copy all people the task was assigned to on the task completion notice",
+                  offText: "Do not copy all assignees",
+                  onText: "Copy all assignees"
+
+
+                }),
+                PropertyPaneTextField("taskCompletionNotificationGroups", {
+                  label: "Comma-separated list of groups to be notified when a task has been completed"
+                }),
               ]
             }
           ]

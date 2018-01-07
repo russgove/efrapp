@@ -6,7 +6,7 @@ import { escape } from '@microsoft/sp-lodash-subset';
 import { PrimaryButton, ButtonType } from "office-ui-fabric-react/lib/Button";
 import { Image, ImageFit } from "office-ui-fabric-react/lib/Image";
 import { ListView } from "@pnp/spfx-property-controls";
-import { load, exec, toArray } from "../../JsomHelpers"
+//import { load, exec, toArray } from "../../JsomHelpers"
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import pnp, {
   WebAddResult, Web, Site, HttpClient, NavigationNodes, NavigationNode, NavigationNodeUpdateResult,
@@ -192,7 +192,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     // now get  the list of folders  we need to create in each library
     foldersList = await pnp.sp.web.lists.getByTitle(this.props.EFRFoldersListName).items.get().then((folders) => {
       this.addMessage("got list of folders");
-      return map(folders, (f) => { return f["Title"] });
+      return map(folders, (f) => { return f["Title"]; });
     }).catch(error => {
       debugger;
       this.addMessage("<h1>error fetching folder list</h1>");
@@ -283,7 +283,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
           //    return;
 
           //  });
-          // Setup securitty on the lisbtrary. First, break role inheritance
+          // Setup security on the library. First, break role inheritance
           await list.breakRoleInheritance(false).then((e) => {
             this.addMessage("broke role inheritance on " + library["Title"]);
           }).catch(error => {
@@ -294,7 +294,6 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
             return;
           });
           // second , add the library-specific group
-
           let group = find(siteGroups, (sg => { return sg["Title"] === library["EFRsecurityGroup"]; }));
           let principlaID = group["Id"];
           let roledef = find(roleDefinitions, (rd => { return rd["Name"] === "Content Authors without delete or modify"; }));
@@ -429,7 +428,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     //add the default view to show only open items assigned to me sorted bt date descening
     await taskList.views.add("My Open Tasks", false, {
       RowLimit: 10,
-      ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="TRUE" /></OrderBy><Where><And><Eq><FieldRef Name="EFRAssignedTo" /><Value Type="Integer"><UserID Type="Integer" /></Value></Eq><Eq><FieldRef Name="EFRVerifiedByAdmin" /><Value Type="Text">No</Value></Eq></And></Where>'
+      ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="TRUE" /></OrderBy><Where><And><Eq><FieldRef Name="EFRAssignedTo" /><Value Type="Integer"><UserID Type="Integer" /></Value></Eq><Eq><FieldRef Name="EFRCompletedByUser" /><Value Type="Text">No</Value></Eq></And></Where>'
     }).then(async (v: ViewAddResult) => {
       // set this as the homePage
       let homepage = v.data.ServerRelativeUrl.substr(webServerRelativeUrl.length + 1);
