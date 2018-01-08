@@ -17,6 +17,14 @@
           "manifest": "./src/webparts/efrAdmin/EfrAdminWebPart.manifest.json"
         }
       ]
+    },
+    "efr-lock-and-hide-sites-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/efrLockAndHideSites/EfrLockAndHideSitesWebPart.js",
+          "manifest": "./src/webparts/efrLockAndHideSites/EfrLockAndHideSitesWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {
@@ -55,6 +63,7 @@
   },
   "localizedResources": {
     "EfrAppWebPartStrings": "lib/webparts/efrApp/loc/{locale}.js",
-    "EfrAdminWebPartStrings": "lib/webparts/efrAdmin/loc/{locale}.js"
+    "EfrAdminWebPartStrings": "lib/webparts/efrAdmin/loc/{locale}.js",
+    "EfrLockAndHideSitesWebPartStrings": "lib/webparts/efrLockAndHideSites/loc/{locale}.js"
   }
 }

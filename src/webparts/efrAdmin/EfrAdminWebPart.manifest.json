@@ -23,8 +23,8 @@
       "ReadAccessGroups":"EFR Visitors",
       "PBCMasterList":"PBCMaster",
       "PBCMaximumTasks": 500,
-      "PBCTaskContentTypeId":"0x0100F2A5ABE2D8166E4E9A3C888E1DB4DC8B"
-
+      "PBCTaskContentTypeId":"0x0100F2A5ABE2D8166E4E9A3C888E1DB4DC8B",
+      "permissionToGrantToLibraries":"Content Authors without delete or modify"
     }
   }]
 }

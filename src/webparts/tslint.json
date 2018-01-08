@@ -1,6 +1,8 @@
 {
     "rules": {
       "no-unused-variable":true
+      
+      
     },
     "rulesDirectory": "./"
   }

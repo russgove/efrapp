@@ -21,6 +21,7 @@ export interface IEfrAdminWebPartProps {
   PBCMasterList:string; // the masater list of tasks to be copied to the created subsite
   PBCMaximumTasks:number; // can up thi sto 2000, then need to break into multiple calls
   PBCTaskContentTypeId:string; // the content type id to add to the EFR task list in the subsite 
+  permissionToGrantToLibraries:string;//the permissions used to grant to library specific groups
 }
 
 export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebPartProps> {
@@ -100,6 +101,9 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
                 PropertyPaneTextField("webPartXml", {
                   label: "The xml of the wabart to be added to the task edit form"
                  
+                }),
+                PropertyPaneTextField("permissionToGrantToLibraries", {
+                  label: "The Permission to grant to the EFR Libraries (Content Authors without delete or modify)"
                 }),
                 
                  

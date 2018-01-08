@@ -8,4 +8,5 @@ export interface IEfrAdminProps {
   PBCMasterList:string; // the masater list of tasks to be copied to the created subsite
   PBCMaximumTasks:number;
   PBCTaskContentTypeId:string; // the content type id to add to the EFR task list in the subsite 
+  permissionToGrantToLibraries:string;//the permissions used to grant to library specific groups
 }

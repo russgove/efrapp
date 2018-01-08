@@ -296,7 +296,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
           // second , add the library-specific group
           let group = find(siteGroups, (sg => { return sg["Title"] === library["EFRsecurityGroup"]; }));
           let principlaID = group["Id"];
-          let roledef = find(roleDefinitions, (rd => { return rd["Name"] === "Content Authors without delete or modify"; }));
+          let roledef = find(roleDefinitions, (rd => { return rd["Name"] === this.props.permissionToGrantToLibraries; }));
           let roleDefId = roledef["Id"];
           await list.roleAssignments.add(principlaID, roleDefId).then(() => {
             this.addMessage("granted " + library["EFRsecurityGroup"] + " read access to " + library["Title"]);
