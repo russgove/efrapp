@@ -498,9 +498,10 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     await taskList.views.getByTitle("All Items").fields.add("EFRAssignedTo").catch((err) => { debugger; });
     await taskList.views.getByTitle("All Items").fields.add("EFRCompletedByUser").catch((err) => { debugger; });
     await taskList.views.getByTitle("All Items").fields.add("EFRVerifiedByAdmin").catch((err) => { debugger; });
+    await taskList.views.getByTitle("All Items").fields.add("EFRDDateCompleted").catch((err) => { debugger; });
 
     // create the tasks in the new task list
-
+    debugger;
     for (const task of tasks) {
 
       let itemToAdd = {

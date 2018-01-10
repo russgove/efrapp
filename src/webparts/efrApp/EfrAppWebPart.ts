@@ -56,12 +56,12 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       itemid = parseInt(queryParameters.getValue("ID"));
     }
     console.log("TaskListName is " + taskListName);
-    debugger;
+
     return pnp.sp.web.lists.
       getByTitle(taskListName).
       items.getById(itemid).expand("EFRAssignedTo")
       .expand("EFRAssignedTo")
-      .select("Title,Id,EFRCompletedByUser,EFRLibraryId,EFRInformationRequested,EFRPeriod,EFRDueDate,EFRDateCompleted,EFRAssignedTo/Title,EFRAssignedTo/UserName,EFRAssignedTo/EMail").getAs<PBCTask>()
+      .select("Title,Id,EFRComments,EFRCompletedByUser,EFRLibraryId,EFRInformationRequested,EFRPeriod,EFRDueDate,EFRDateCompleted,EFRAssignedTo/Title,EFRAssignedTo/UserName,EFRAssignedTo/EMail").getAs<PBCTask>()
 
       .then(async (task) => {
         this.task = task;
@@ -80,6 +80,16 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       }).catch((err) => {
         console.error(err);
       });
+
+  }
+  private  updateComments(taskId,oldValue, newValue):Promise<any> {
+    const updates = {
+      "EFRComments": newValue,
+    };
+    return pnp.sp.web.lists.getByTitle(this.properties.taskListName).items.getById(taskId).update(updates).catch((err) => {
+      console.error(err);
+      alert("There was ean error updating this task");
+    });
 
   }
   /**
@@ -146,7 +156,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     debugger;
     let emailAddresses: Array<string> = [];
     for (let sharePointGroup of sharePointGroups.split(',')) {
-      await pnp.sp.web.siteGroups.getByName(sharePointGroup.trim()).users.get().then((users)=> {
+      await pnp.sp.web.siteGroups.getByName(sharePointGroup.trim()).users.get().then((users) => {
         debugger;
         for (let user of users) {
           emailAddresses.push(user.Email);
@@ -156,7 +166,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     return emailAddresses;
   }
   public async completeTask(task: PBCTask) {
-    debugger;
+
     const updates = {
       "EFRCompletedByUser": "Yes",
       "EFRDateCompleted": new Date().toISOString()
@@ -170,9 +180,9 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       alert("There was ean error updating this task");
     });
     let toAddresses: Array<string>;
-    debugger;
+
     await this.getEmailAddressesFromGroups(this.properties.taskCompletionNotificationGroups).then((emails) => {
-      debugger;
+
       toAddresses = emails;
     }).catch((err) => {
       console.error(err);
@@ -181,7 +191,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     let ccAddresses: Array<string>;
     if (this.properties.copyAllAssigneesOnCompletionNotice) {
       ccAddresses = task.EFRAssignedTo.map((assignee) => {
-        debugger;
+
         return assignee.EMail;
       });
     } else {
@@ -200,7 +210,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     console.log(emailprops);
     await pnp.sp.utility.sendEmail(emailprops)
       .then((x) => {
-        debugger;
+
       }).catch((err) => {
         debugger;
         console.error(err);
@@ -221,6 +231,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     }
   }
   public render(): void {
+    debugger;
     const element: React.ReactElement<IEfrAppProps> = React.createElement(
       EfrApp,
       {
@@ -234,7 +245,11 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
         documentIframeHeight: this.properties.documentIframeHeight,
         currentUserLoginName: this.context.pageContext.user.loginName,
         completeTask: this.completeTask.bind(this),
-        closeWindow: this.closeWindow.bind(this)
+        closeWindow: this.closeWindow.bind(this),
+        updateTaskComments: this.updateComments.bind(this),
+        ckEditorUrl: this.properties.ckEditorUrl,
+        ckEditorConfig: this.properties.ckEditorConfig
+
       }
     );
 

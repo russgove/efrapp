@@ -14,7 +14,7 @@ export class PBCTask {
     public EFRPeriod: string; // period info is needed for
     public EFRDueDate: string; // date the user needs to upload the files by
     public WorkDay: String; // ?? -1 mans 1 day before reporting?
-    public Comments: String; // user comments
+    public EFRComments: string; // user comments
     public DateCompleted: Date; // date the user clicked the complete button
     public EFRAssignedTo: Array<{ Title: string, UserName: string,EMail:string }>; // users who need to upload the files
     public EFRCompletedByUser: "Yes" | "No";// the user clicked the complete button, indicating they were done uploading files

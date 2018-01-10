@@ -140,7 +140,7 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
       debugger;
     });
   }
-  public async lockSite(efrWeb: efrWeb): Promise<any> {
+  public async lockSite(web: efrWeb): Promise<any> {
     debugger;
     // the roledefinition top replace witj 
     let replacementRoleDefinitionId: number;
@@ -159,14 +159,14 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
     }).catch((err) => {
       console.error(err);
       alert("error loading list of libraries");
-    })
+    });
     let subweb: Web;
-    await pnp.sp.site.openWebById(efrWeb.id).then(sw => {
+    await pnp.sp.site.openWebById(web.id).then(sw => {
       subweb = sw.web;
     }).catch(err => {
       debugger;
       console.log(err);
-      alert("error openning web  " + efrWeb.title);
+      alert("error openning web  " + web.title);
       alert(err.data.responseBody["odata.error"].message.value);
     });
     for (let lib of libs) {
@@ -178,7 +178,7 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
       }).catch((err) => {
         debugger;
         console.log(err);
-        alert("error openning web  " + efrWeb.title);
+        alert("error openning web  " + web.title);
         alert(err.data.responseBody["odata.error"].message.value);
       });
       await subweb.lists
@@ -193,7 +193,7 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
               .catch((err)=>{
                 debugger;
                 console.error(err);
-                alert("an error occurred removing the permission from library "+lib.Title)
+                alert("an error occurred removing the permission from library "+lib.Title);
                 return;
               });
 
@@ -201,7 +201,7 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
                 
               }).catch(error => {
                 debugger;
-                alert("an error occurred granting " + this.properties.permissionToReplaceWith+" permission to library "+lib.Title)
+                alert("an error occurred granting " + this.properties.permissionToReplaceWith+" permission to library "+lib.Title);
                 console.error(error);
                 return;
               });
@@ -210,9 +210,9 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
         }).catch((err) => {
           debugger;
           console.log(err);
-          alert("error fetching list " +lib.Title +"from site " +efrWeb.title);
+          alert("error fetching list " +lib.Title +"from site " +web.title);
           alert(err.data.responseBody["odata.error"].message.value);
-        });;
+        });
 
     }
 

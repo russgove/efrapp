@@ -37,7 +37,7 @@ export default class EfrLockAndHideSites extends React.Component<IEfrLockAndHide
     return moment(item[column.fieldName]).format("MMM Do YYYY");
   }
   public renderBoolean(item?: any, index?: number, column?: IColumn): JSX.Element {
-    return (<Checkbox checked={item[column.fieldName]} />)
+    return (<Checkbox checked={item[column.fieldName]} />);
   }
   public renderOnTopNav(item?: any, index?: number, column?: IColumn): JSX.Element {
 
@@ -45,10 +45,10 @@ export default class EfrLockAndHideSites extends React.Component<IEfrLockAndHide
     // this.props.topNav.toArray;
     for (let navnode of this.props.topNav) {
       if (navnode.Title === item.title) {
-        return (<Checkbox checked={true} />)
+        return (<Checkbox checked={true} />);
       }
     }
-    return (<Checkbox checked={false} />)
+    return (<Checkbox checked={false} />);
   }
 
 
@@ -63,16 +63,16 @@ export default class EfrLockAndHideSites extends React.Component<IEfrLockAndHide
           for (let ni of this.props.topNav) {
             if (ni.Title === item.title) {
               debugger;
-              this.props.removeSiteFromTopNav(ni)
+              this.props.removeSiteFromTopNav(ni);
             }
           }
         }
         } >
           Remove from Navigation
-        </ActionButton>)
+        </ActionButton>);
       }
     }
-    return (<div />)
+    return (<div />);
   }
   public renderLockSite(item?: any, index?: number, column?: IColumn): JSX.Element {
 
@@ -87,7 +87,7 @@ export default class EfrLockAndHideSites extends React.Component<IEfrLockAndHide
       >
 
         Lock Site
-        </ActionButton>)
+        </ActionButton>);
     }
   }
 

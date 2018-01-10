@@ -46,7 +46,8 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
         ReadAccessGroups:this.properties.ReadAccessGroups,
         PBCMasterList:this.properties.PBCMasterList,
         PBCMaximumTasks:this.properties.PBCMaximumTasks,
-        PBCTaskContentTypeId:this.properties.PBCTaskContentTypeId
+        PBCTaskContentTypeId:this.properties.PBCTaskContentTypeId,
+        permissionToGrantToLibraries:this.properties.permissionToGrantToLibraries
 
       }
     );

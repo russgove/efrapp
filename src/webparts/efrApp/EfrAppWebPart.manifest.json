@@ -28,10 +28,12 @@
         "taskListName": "EFRTasks",
         "documentIframeWidth": 500,
         "documentIframeHeight": 500,
-        "EFRLibrariesListName":"EFRLibraries",
-        "EFRFoldersListName":"EFRFolders",
-        "taskCompletionNotificationGroups":"testgroup",
-        "copyAllAssigneesOnCompletionNotice":true
+        "EFRLibrariesListName": "EFRLibraries",
+        "EFRFoldersListName": "EFRFolders",
+        "taskCompletionNotificationGroups": "testgroup",
+        "copyAllAssigneesOnCompletionNotice": true,
+        "ckEditorUrl": "https://tronoxglobal.sharepoint.com/sites/CDN/Scripts/ckeditor/v4.5.11/ckeditor.js",
+        "ckEditorConfig":" { 'config.autoGrow_maxHeight': 1400,  'height': 1000  }"
       }
     }
   ]

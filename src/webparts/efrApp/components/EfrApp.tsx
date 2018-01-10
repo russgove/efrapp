@@ -1,9 +1,10 @@
 import * as React from 'react';
 import styles from './EfrApp.module.scss';
 import { DocumentIframe } from './DocumentIframe';
+import { TextFieldWithEdit } from './TextFieldWithEdit';
 import { IEfrAppProps } from './IEfrAppProps';
 import { IEfrAppState } from './IEfrAppState';
-import { escape } from '@microsoft/sp-lodash-subset';
+import { escape,cloneDeep } from '@microsoft/sp-lodash-subset';
 import { PageContext } from "@microsoft/sp-page-context";
 import { PrimaryButton, ButtonType, CompoundButton, } from "office-ui-fabric-react/lib/Button";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
@@ -35,7 +36,8 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     this.CompleteButton = this.CompleteButton.bind(this);
     this.state = {
       documentCalloutIframeUrl: "",
-      documents: props.documents
+      documents: props.documents,
+      taskComments:props.task.EFRComments  // User can only update the comments on this
     };
   }
   /**
@@ -120,7 +122,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
    */
   public documentRowMouseEnter(document: Document, e: any) {
     console.log("in documentRowMouseEnter");
-    debugger;
+  
     // mode passed to fetchDocumentWopiFrameURL: 0: view, 1: edit, 2: mobileView, 3: interactivePreview
     this.props.fetchDocumentWopiFrameURL(document.id, 0, this.props.task.EFRLibrary).then(url => {
       // if (!url || url === "") {  // is this causing the download when i hove over a non office doc?
@@ -143,7 +145,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
    * @memberof EfrApp
    */
   public userIsAssignedTask(task: PBCTask): boolean {
-    debugger;
+  
     for (var assignee of task.EFRAssignedTo) {
       if (assignee.UserName.toUpperCase() === this.props.currentUserLoginName.toUpperCase()) {
         return true;
@@ -232,7 +234,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
    * @memberof EfrApp
    */
   private CompleteButton(): JSX.Element {
-    debugger;
+  
     if (!this.userIsAssignedTask(this.props.task)) { // dont show the button if its not my task
       return (<div />);
     }
@@ -257,7 +259,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
    * @memberof EfrApp
    */
   private CloseButton(): JSX.Element {
-    debugger;
+    
 
     return (
       <div>
@@ -268,6 +270,14 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
       </div>
     );
   }
+  public commentsChanged(oldValue, newValue):Promise<any>{
+
+    return this.props.updateTaskComments(this.props.task.Id,oldValue,newValue).then(()=>{
+      debugger;
+      this.setState((current)=>({...current, taskComments:newValue}));
+    });
+  }
+  
   /**
    * renders the page
    * 
@@ -276,7 +286,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
    */
   public render(): React.ReactElement<IEfrAppProps> {
     console.log("in render");
-    debugger;
+   debugger;
     return (
       <div className={styles.efrApp}>
         <div className={styles.headerArea}>
@@ -304,18 +314,29 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
                     onResolveSuggestions={null}
                     defaultSelectedItems={this.getAssignees(this.props.task.EFRAssignedTo)}
                   />
-                  {/* <TextField label=""
-                    disabled={true}
-                    value={this.getAssignees(this.props.task.EFRAssignedTo)} /> */}
+              </td>
+              </tr>
+              <tr>
+                <td>
+                  <Label>Comments:</Label>
+                </td>
+                <td>
+                  <TextFieldWithEdit
+                    value={this.state.taskComments}
+                    onValueChanged={this.commentsChanged.bind(this)}
+                    ckEditorUrl={this.props.ckEditorUrl}
+                    ckEditorConfig={this.props.ckEditorConfig}
+                  />
+             
                 </td>
               </tr>
+
 
             </table>
           </div >
           <div style={{ float: "left", width: "50%" }}>
             <this.CompleteButton />
             <this.CloseButton />
-
           </div>
           <div style={{ clear: "both" }}></div>
         </div>
