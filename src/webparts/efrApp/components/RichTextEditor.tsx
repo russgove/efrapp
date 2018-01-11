@@ -3,13 +3,15 @@ import { SPComponentLoader } from "@microsoft/sp-loader";
 export interface IRichTextEditorProps {
     value: string;
     ckEditorUrl:string;
-    ckEditorConfig:any;
+    ckEditorConfig:{};
 }
+import { Guid } from "@microsoft/sp-core-library";
 export interface IRichTextEditorState {
     text: string;
 }
 export class RichTextEditor extends React.Component<IRichTextEditorProps, IRichTextEditorState>{
     private ckeditor;
+    private fieldId:string = "richTextEditor"+ Guid.newGuid().toString();
     public componentDidMount() {
         debugger;
         // see https://github.com/SharePoint/sp-de//cdn.ckeditor.com/4.6.2/full/ckeditor.jsv-docs/issues/374
@@ -18,7 +20,7 @@ export class RichTextEditor extends React.Component<IRichTextEditorProps, IRichT
         SPComponentLoader.loadScript(ckEditorCdn, { globalExportsName: "CKEDITOR" }).then((CKEDITOR: any): void => {
           this.ckeditor = CKEDITOR;
           // replaces the title with a ckeditor. the other textareas are not visible yet. They will be replaced when the tab becomes active
-          this.ckeditor.replace("someuniqueFieldName", this.props.ckEditorConfig);
+          this.ckeditor.replace(this.fieldId, this.props.ckEditorConfig);
     
         });
     
@@ -30,7 +32,7 @@ export class RichTextEditor extends React.Component<IRichTextEditorProps, IRichT
     }
     public getValue(){
         debugger;
-        let instance=this.ckeditor.instances["someuniqueFieldName"];
+        let instance=this.ckeditor.instances[this.fieldId];
         let data = instance.getData();
         return data;
 
@@ -39,7 +41,7 @@ export class RichTextEditor extends React.Component<IRichTextEditorProps, IRichT
         debugger;
         return (
             <div>
-                <textarea name="someuniqueFieldName" id="someuniqueFieldName" style={{ display: "none" }}>
+                <textarea name={this.fieldId} id={this.fieldId} style={{ display: "none" }}>
                     {this.state.text}
                 </textarea>
             </div>

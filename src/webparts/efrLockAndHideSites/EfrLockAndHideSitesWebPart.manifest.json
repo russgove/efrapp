@@ -15,7 +15,7 @@
 
   "preconfiguredEntries": [{
     "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
-    "group": { "default": "Other" },
+    "group": { "default": "External Financial Reporting" },
     "title": { "default": "EFR Lock and Hide sites" },
     "description": { "default": "Lets owner lock and hide subsites" },
     "officeFabricIconFontName": "Page",

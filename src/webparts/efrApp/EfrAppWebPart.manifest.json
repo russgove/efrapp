@@ -33,7 +33,7 @@
         "taskCompletionNotificationGroups": "testgroup",
         "copyAllAssigneesOnCompletionNotice": true,
         "ckEditorUrl": "https://tronoxglobal.sharepoint.com/sites/CDN/Scripts/ckeditor/v4.5.11/ckeditor.js",
-        "ckEditorConfig":" { 'config.autoGrow_maxHeight': 1400,  'height': 1000  }"
+        "settingsList":"Settings"
       }
     }
   ]

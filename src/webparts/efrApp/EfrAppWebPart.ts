@@ -1,9 +1,9 @@
 import * as React from "react";
-import { PBCTask } from "./model";
+import { PBCTask, Setting } from "./model";
 import * as ReactDom from "react-dom";
 import { Version, UrlQueryParameterCollection } from "@microsoft/sp-core-library";
 import pnp, { SearchQuery, SearchResults, SortDirection, EmailProperties, Items } from "sp-pnp-js";
-
+import { SPUser } from "@microsoft/sp-page-context"
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
@@ -20,12 +20,13 @@ import { RenderListDataParameters } from "sp-pnp-js";
 //import UrlQueryParameterCollection from "@microsoft/sp-core-library/lib/url/UrlQueryParameterCollection";
 import { debounce } from "@microsoft/sp-lodash-subset";
 import CultureInfo from "@microsoft/sp-page-context/lib/CultureInfo";
-import { map, filter } from "lodash";
+import { map, filter, find } from "lodash";
 import { Document } from "./model";
 export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartProps> {
   private documentsListName: string;
   private task: PBCTask;
   private documents: Array<Document>;
+  private settings: Array<Setting>;
   public onInit(): Promise<void> {
     return super.onInit().then(_ => {
 
@@ -56,7 +57,16 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       itemid = parseInt(queryParameters.getValue("ID"));
     }
     console.log("TaskListName is " + taskListName);
+    // get the seeings list (it has all the email templates)
+    debugger;
+    await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.settingsList).items.getAs<Array<Setting>>().then((settingsResponse => {
+      this.settings = settingsResponse;
 
+    })).catch((err) => {
+      console.error(err);
+      debugger;
+      alert("There was an error fetching the settings");
+    });
     return pnp.sp.web.lists.
       getByTitle(taskListName).
       items.getById(itemid).expand("EFRAssignedTo")
@@ -82,7 +92,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       });
 
   }
-  private  updateComments(taskId,oldValue, newValue):Promise<any> {
+  private updateComments(taskId, oldValue, newValue): Promise<any> {
     const updates = {
       "EFRComments": newValue,
     };
@@ -165,6 +175,13 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     }
     return emailAddresses;
   }
+  private replaceEmailTokens(formatString: string, task: PBCTask, user: SPUser): string {
+    let newString = formatString.split("~useremail").join(user.email)
+      .split("~tasktitle").join(task.Title)
+      .split("~taskinformationrequested").join(task.EFRInformationRequested)
+      .split("~tasklibrary").join(task.EFRLibrary);
+    return newString;
+  }
   public async completeTask(task: PBCTask) {
 
     const updates = {
@@ -179,7 +196,11 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       debugger;
       alert("There was ean error updating this task");
     });
+
+
     let toAddresses: Array<string>;
+
+
 
     await this.getEmailAddressesFromGroups(this.properties.taskCompletionNotificationGroups).then((emails) => {
 
@@ -197,12 +218,17 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     } else {
       ccAddresses = [this.context.pageContext.user.email];
     }
+    let subjectformat = find(this.settings, (setting) => { return setting.Title === "Task Completed Email Subject" }).PlainText;
+    let subject = this.replaceEmailTokens(subjectformat, task, this.context.pageContext.user);
+    let bodyformat = find(this.settings, (setting) => { return setting.Title === "Task Completed Email Body" }).RichText;
+    let body = this.replaceEmailTokens(bodyformat, task, this.context.pageContext.user);
+    let from = find(this.settings, (setting) => { return setting.Title === "Task Completed Email From" }).PlainText;
 
     let emailprops: EmailProperties = {
       To: toAddresses,
       CC: ccAddresses,
-      Subject: "Task " + task.Title + " has been marked complete by " + this.context.pageContext.user.email,
-      Body: this.context.pageContext.user.email + " has confirmed that " + task.EFRInformationRequested + " has been uploaded to the library " + task.EFRLibrary,
+      Subject: subject,
+      Body: body,
       From: "Tronox External Financial Reporting"
     };
 
@@ -230,8 +256,13 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       window.location.href = source;
     }
   }
-  public render(): void {
+  public doit(literals, ...placeholders) {
     debugger;
+
+  }
+  public render(): void {
+
+
     const element: React.ReactElement<IEfrAppProps> = React.createElement(
       EfrApp,
       {
@@ -248,7 +279,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
         closeWindow: this.closeWindow.bind(this),
         updateTaskComments: this.updateComments.bind(this),
         ckEditorUrl: this.properties.ckEditorUrl,
-        ckEditorConfig: this.properties.ckEditorConfig
+        ckEditorConfig: find(this.settings, (setting) => { return setting.Title === "ckEditorConfig" }).PlainText
 
       }
     );
@@ -325,6 +356,13 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
                   label: "Task List Name (only used in dev mode)"
                 }),
 
+                PropertyPaneTextField("settingsList", {
+                  label: "Name of the list in the rootweb that holds the miscellaneous settings"
+                }),
+                PropertyPaneTextField("taskListName", {
+                  label: "Task List Name (only used in dev mode)"
+                }),
+
                 PropertyPaneSlider('documentIframeHeight', {
                   label: "Hight of Iframe used to show Documents",
                   min: 100,
@@ -347,9 +385,11 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
 
 
                 }),
-                PropertyPaneTextField("taskCompletionNotificationGroups", {
-                  label: "Comma-separated list of groups to be notified when a task has been completed"
+                PropertyPaneTextField("ckEditorUrl", {
+                  label: "Url of ckEditor (used to edit comments)"
                 }),
+             
+
               ]
             }
           ]

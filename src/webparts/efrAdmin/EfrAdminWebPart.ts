@@ -8,9 +8,11 @@ import {
 } from '@microsoft/sp-webpart-base';
 
 import * as strings from 'EfrAdminWebPartStrings';
+import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 import EfrAdmin from './components/EfrAdmin';
 import { IEfrAdminProps } from './components/IEfrAdminProps';
 import pnp from "sp-pnp-js";
+import { find, map } from "lodash";
 export interface IEfrAdminWebPartProps {
   webPartXml: string;
   templateName:string; // the template used to create subsites
@@ -18,7 +20,7 @@ export interface IEfrAdminWebPartProps {
   EFRFoldersListName:string; // the list of folders to create in each library
   WriteAccessGroups: string; // comma separed list of groups that get write access to ALL librries "EFR Site Admins",
   ReadAccessGroups: string ;// comma separed list of groups that get read access to ALL librries "EFR Visitors"
-  PBCMasterList:string; // the masater list of tasks to be copied to the created subsite
+  PBCMasterLists:string; // A comma-separated list of ListTitles of lists that contain the tasks to be created on each subsite (PBCMaster,PBCMasterYearEnd) -- user musdt selecty one
   PBCMaximumTasks:number; // can up thi sto 2000, then need to break into multiple calls
   PBCTaskContentTypeId:string; // the content type id to add to the EFR task list in the subsite 
   permissionToGrantToLibraries:string;//the permissions used to grant to library specific groups
@@ -35,6 +37,7 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
   }
   public render(): void {
     debugger;
+    debugger;
     const element: React.ReactElement<IEfrAdminProps> = React.createElement(
       EfrAdmin,
       {
@@ -44,7 +47,9 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
         EFRFoldersListName:this.properties.EFRFoldersListName,
         WriteAccessGroups:this.properties.WriteAccessGroups,
         ReadAccessGroups:this.properties.ReadAccessGroups,
-        PBCMasterList:this.properties.PBCMasterList,
+        PBCMasterLists:this.properties.PBCMasterLists.split(',').map((name)=>{
+          return {key:name,text:name}
+        }),
         PBCMaximumTasks:this.properties.PBCMaximumTasks,
         PBCTaskContentTypeId:this.properties.PBCTaskContentTypeId,
         permissionToGrantToLibraries:this.properties.permissionToGrantToLibraries
@@ -73,8 +78,8 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
                 PropertyPaneTextField("templateName", {
                   label: "Template used to create subsites (STS#0)"
                 }),
-                PropertyPaneTextField("PBCMasterList", {
-                  label: "The name of the list that contains the tasks to be created on each subsite (PBCMaster)  "
+                PropertyPaneTextField("PBCMasterLists", {
+                  label: "A comma-separated list of ListTitles of lists that contain the tasks to be created on each subsite (PBCMaster,PBCMasterYearEnd)  "
                 }),
                 PropertyPaneSlider('PBCMaximumTasks', {
                   label: "Maximum number of tasks to read from PBCMasterList",

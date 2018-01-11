@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { TextField, ITextFieldProps } from "office-ui-fabric-react/lib/TextField";
 import { IconButton, PrimaryButton, DefaultButton } from "office-ui-fabric-react/lib/Button";
-import { Panel } from "office-ui-fabric-react/lib/Panel";
+import { Panel,PanelType } from "office-ui-fabric-react/lib/Panel";
 import { Dialog, DialogType, DialogContent, DialogFooter } from "office-ui-fabric-react/lib/Dialog";
 import { Link, ILinkProps } from "office-ui-fabric-react/lib/Link";
 import { RichTextEditor } from "./RichTextEditor";
@@ -10,7 +10,7 @@ export interface ITextFieldWithEditProps {
     onValueChanged?: (oldValue, newValue) => Promise<any>;
     dangerouslySetInnerHTML?: boolean;
     ckEditorUrl: string;
-    ckEditorConfig: string;
+    ckEditorConfig: {};
 }
 export interface ITextFieldWithEditState {
     showWeditor: boolean;
@@ -46,18 +46,11 @@ export class TextFieldWithEdit extends React.Component<ITextFieldWithEditProps, 
                     />
                 }
 
-                <Dialog
-                    hidden={(!this.state.showWeditor)}
-                    onDismiss={(e) => { debugger; this.setState((current) => ({ ...current, showWeditor: false })); }}
-                    dialogContentProps={{
-                        type: DialogType.normal,
-                        title: 'Add Comments',
-                        subText: '(note: all comments are final and cannot be editted).'
-                    }}
-                    modalProps={{
-                        isBlocking: true,
-                        containerClassName: 'ms-dialogMainOverride'
-                    }}
+                <Panel 
+                 type={PanelType.medium}
+                    isOpen={this.state.showWeditor}
+                    onDismiss={()=>{ this.setState((current) => ({ ...current, showWeditor: false }));}}
+                
                 >
                     <RichTextEditor
                         ref={instance => { this.richTextEditor = instance; }}
@@ -80,7 +73,7 @@ export class TextFieldWithEdit extends React.Component<ITextFieldWithEditProps, 
                             onClick={(e) => { debugger; this.setState((current) => ({ ...current, showWeditor: false })); }}
                             text='Cancel' />
                     </DialogFooter>
-                </Dialog>
+                </Panel>
 
             </div>
 

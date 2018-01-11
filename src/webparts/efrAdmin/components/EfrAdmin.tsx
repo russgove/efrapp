@@ -4,6 +4,7 @@ import { IEfrAdminProps } from './IEfrAdminProps';
 import { IEfrAdminState } from './IEfrAdminState';
 import { escape } from '@microsoft/sp-lodash-subset';
 import { PrimaryButton, ButtonType } from "office-ui-fabric-react/lib/Button";
+import { Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { Image, ImageFit } from "office-ui-fabric-react/lib/Image";
 import { ListView } from "@pnp/spfx-property-controls";
 //import { load, exec, toArray } from "../../JsomHelpers"
@@ -25,13 +26,15 @@ require('sharepoint');
 require('sp-workflow');
 export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminState> {
 
-  public constructor(props) {
+  public constructor(props: IEfrAdminProps) {
     super();
     console.log("in Construrctor");
 
     this.state = {
       messages: ["Enter the site name and click the create site button"],
-      siteName: ""
+      siteName: "",
+      pbcMasterList: props.PBCMasterLists[0].text
+
     };
 
   }
@@ -347,7 +350,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
     }
     // get the master list of tasks
-    await pnp.sp.web.lists.getByTitle(this.props.PBCMasterList).items.expand("EFRLibrary").select("*,EFRLibrary/Title")
+    await pnp.sp.web.lists.getByTitle(this.state.pbcMasterList).items.expand("EFRLibrary").select("*,EFRLibrary/Title")
       .top(this.props.PBCMaximumTasks)
       .get().then((efrtasks) => {
         this.addMessage("got PBC MASTER list");
@@ -656,6 +659,15 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
           this.setState((current) => ({ ...current, siteName: e }));
         }} />
 
+        <Dropdown
+          options={this.props.PBCMasterLists}
+          selectedKey={this.state.pbcMasterList}
+
+          label="PBC Master List"
+          onChanged={(e) => {
+            debugger;
+            this.setState((current) => ({ ...current, pbcMasterList: e.text }));
+          }} />
         <PrimaryButton onClick={this.createSite.bind(this)} title="Create Site">Create Site</PrimaryButton>
 
         <div dangerouslySetInnerHTML={this.displayMessages()} />

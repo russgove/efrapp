@@ -2,6 +2,7 @@ import * as React from 'react';
 import styles from './EfrApp.module.scss';
 import { DocumentIframe } from './DocumentIframe';
 import { TextFieldWithEdit } from './TextFieldWithEdit';
+import { RichTextEditor } from './RichTextEditor';
 import { IEfrAppProps } from './IEfrAppProps';
 import { IEfrAppState } from './IEfrAppState';
 import { escape,cloneDeep } from '@microsoft/sp-lodash-subset';
@@ -285,10 +286,15 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
    * @memberof EfrApp
    */
   public render(): React.ReactElement<IEfrAppProps> {
-    console.log("in render");
+    console.log("ckEditorConfig follows");
+
+    console.log(this.props.ckEditorConfig)
+
    debugger;
+   try{
     return (
       <div className={styles.efrApp}>
+        
         <div className={styles.headerArea}>
           <div style={{ float: "left", width: "50%" }}>
             <table>
@@ -325,7 +331,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
                     value={this.state.taskComments}
                     onValueChanged={this.commentsChanged.bind(this)}
                     ckEditorUrl={this.props.ckEditorUrl}
-                    ckEditorConfig={this.props.ckEditorConfig}
+                    ckEditorConfig={JSON.parse(this.props.ckEditorConfig)}
                   />
              
                 </td>
@@ -396,5 +402,10 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
 
       </div>
     );
+  }catch(error){
+    console.error("An error occurred renering EFrapp.");
+    console.error(error);
+    return (<div>An error occurred rendering the EFR application</div>);
+  }
   }
 }

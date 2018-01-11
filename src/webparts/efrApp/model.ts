@@ -27,3 +27,9 @@ export class Document {
     public id: number;
     public serverRalativeUrl: string;
 }
+
+export class Setting { // from the settingsList
+    public Title: string;
+    public RichText: string;
+    public PlainText: string;
+}
