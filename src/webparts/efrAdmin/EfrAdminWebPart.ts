@@ -36,8 +36,7 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
     });
   }
   public render(): void {
-    debugger;
-    debugger;
+  
     const element: React.ReactElement<IEfrAdminProps> = React.createElement(
       EfrAdmin,
       {
@@ -52,7 +51,9 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
         }),
         PBCMaximumTasks:this.properties.PBCMaximumTasks,
         PBCTaskContentTypeId:this.properties.PBCTaskContentTypeId,
-        permissionToGrantToLibraries:this.properties.permissionToGrantToLibraries
+        permissionToGrantToLibraries:this.properties.permissionToGrantToLibraries,
+        siteUrl:this.context.pageContext.site.serverRelativeUrl,
+     
 
       }
     );

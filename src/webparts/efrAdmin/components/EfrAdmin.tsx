@@ -3,6 +3,7 @@ import styles from './EfrAdmin.module.scss';
 import { IEfrAdminProps } from './IEfrAdminProps';
 import { IEfrAdminState } from './IEfrAdminState';
 import { escape } from '@microsoft/sp-lodash-subset';
+import { Guid } from '@microsoft/sp-core-library';
 import { PrimaryButton, ButtonType } from "office-ui-fabric-react/lib/Button";
 import { Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 import { Image, ImageFit } from "office-ui-fabric-react/lib/Image";
@@ -24,6 +25,7 @@ require('microsoft-ajax');
 require('sp-runtime');
 require('sharepoint');
 require('sp-workflow');
+
 export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminState> {
 
   public constructor(props: IEfrAdminProps) {
@@ -56,7 +58,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
   * @memberof EfrAdmin
   */
   public async SetWebToUseSharedNavigation(webRelativeUrl: string) {
-    debugger;
+
     const clientContext: SP.ClientContext = new SP.ClientContext(webRelativeUrl);
     var currentWeb = clientContext.get_web();
     var navigation = currentWeb.get_navigation();
@@ -71,6 +73,68 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       });
     });
   }
+  public async AddQuickLaunchItem(webUrl: string, title: string, url: string, isExternal: boolean) {
+    let nnci: SP.NavigationNodeCreationInformation = new SP.NavigationNodeCreationInformation();
+    nnci.set_title(title);
+    nnci.set_url(url);
+    nnci.set_isExternal(isExternal)
+    const clientContext: SP.ClientContext = new SP.ClientContext(webUrl);
+    const web = clientContext.get_web();
+    web.get_navigation().get_quickLaunch().add(nnci);
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+
+  }
+  public async RemoveQuickLaunchItem(webUrl: string, titlesToRemove: string[]) {
+    const clientContext: SP.ClientContext = new SP.ClientContext(webUrl);
+    const ql: SP.NavigationNodeCollection = clientContext.get_web().get_navigation().get_quickLaunch();
+    clientContext.load(ql);
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+    debugger;
+    let itemsToDelete = [];
+    let itemCount = ql.get_count();
+    for (let x = 0; x < itemCount; x++) {
+      let item = ql.getItemAtIndex(x);
+      let itemtitle = item.get_title()
+      if (titlesToRemove.indexOf(itemtitle) !== -1) {
+        itemsToDelete.push(item);
+      }
+    }
+    for (let item of itemsToDelete) {
+      item.deleteObject();
+    }
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+    debugger;
+
+  }
+
+  public async fixUpLeftNav(webUrl: string, homeUrl: string) {
+    debugger;
+    await this.AddQuickLaunchItem(webUrl, "EFR Home", homeUrl, true);
+    await this.RemoveQuickLaunchItem(webUrl, ["Pages", "Documents"]);
+
+  }
+
   /**
    *  Adds a custom webpart to the edit form located at editformUrl
    * 
@@ -129,6 +193,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     });
   }
 
+
   /**
    * Creates an EFR Quarterly subsite including secured libraries and an efr tsak list
    * 
@@ -161,7 +226,6 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     // create the site
     await pnp.sp.web.webs.add(this.state.siteName, this.state.siteName, this.state.siteName, this.props.templateName).then((war: WebAddResult) => {
       this.addMessage("CreatedSite");
-
       // show the response from the server when adding the web
       webServerRelativeUrl = war.data.ServerRelativeUrl;
       console.log(war.data);
@@ -174,10 +238,10 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       console.error(error);
       return;
     });
+
     await this.SetWebToUseSharedNavigation(webServerRelativeUrl);
-
-
-
+    debugger;
+    await this.fixUpLeftNav(webServerRelativeUrl, this.props.siteUrl);
     // now get  the list of libraries we need to create on the new site
     await pnp.sp.web.lists.getByTitle(this.props.EFRLibrariesListName).items
       //   .top(2)
@@ -237,6 +301,25 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
           this.addMessage("Created Library " + library["Title"]);
           let list = listResponse.list;
 
+          for (const folder of foldersList) {
+            await list.rootFolder.folders.add(folder)
+              .then((results) => {
+                console.log("created folder")
+              })
+              .catch((error) => {
+                debugger;
+                console.log("error creating folder")
+              });
+          }
+
+          // await folderBatch.execute().then((results) => {
+          //   console.log("executed batch");
+          // }).catch((error) => {
+          //   console.log("error executing batch");
+          //   return;
+
+          // });
+
           let viewUrl: string;
           await list.views.getByTitle("All Documents").get().then((view) => {
 
@@ -258,34 +341,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
             console.error(error);
             return;
           });
-          let folderBatch = pnp.sp.createBatch();
 
-          this.addMessage("Creating folders");
-          for (const folder of foldersList) {
-
-            await list.rootFolder.folders.add(folder)
-
-              .then((results) => {
-
-                this.addMessage("Creating folder  " + folder + " in Library " + library["Title"]);
-
-                this.addMessage("Created folder  " + folder + " in Library " + library["Title"]);
-
-              })
-              .catch((error) => {
-                debugger;
-                this.addMessage("<h1>error creating folder" + folder + "in " + library["Title"] + "</h1>");
-
-              });
-          }
-          // debugger;
-          //  await folderBatch.execute().then((results) => {
-          //    this.addMessage("Created all folders in Library " + library["Title"]);
-          //  }).catch((error) => {
-          //    this.addMessage("<h1>error creating folders in  " + library["Title"] + "</h1>");
-          //    return;
-
-          //  });
           // Setup security on the library. First, break role inheritance
           await list.breakRoleInheritance(false).then((e) => {
             this.addMessage("broke role inheritance on " + library["Title"]);
@@ -671,6 +727,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         <PrimaryButton onClick={this.createSite.bind(this)} title="Create Site">Create Site</PrimaryButton>
 
         <div dangerouslySetInnerHTML={this.displayMessages()} />
+
       </div >
     );
   }
