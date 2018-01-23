@@ -8,11 +8,11 @@ import {
 } from '@microsoft/sp-webpart-base';
 
 import * as strings from 'EfrAdminWebPartStrings';
-import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
+
 import EfrAdmin from './components/EfrAdmin';
 import { IEfrAdminProps } from './components/IEfrAdminProps';
 import pnp from "sp-pnp-js";
-import { find, map } from "lodash";
+
 export interface IEfrAdminWebPartProps {
   webPartXml: string;
   templateName:string; // the template used to create subsites
@@ -47,7 +47,7 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
         WriteAccessGroups:this.properties.WriteAccessGroups,
         ReadAccessGroups:this.properties.ReadAccessGroups,
         PBCMasterLists:this.properties.PBCMasterLists.split(',').map((name)=>{
-          return {key:name,text:name}
+          return {key:name,text:name};
         }),
         PBCMaximumTasks:this.properties.PBCMaximumTasks,
         PBCTaskContentTypeId:this.properties.PBCTaskContentTypeId,

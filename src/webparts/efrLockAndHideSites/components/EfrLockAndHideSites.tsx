@@ -1,26 +1,22 @@
 import * as React from 'react';
 import styles from './EfrLockAndHideSites.module.scss';
 import { IEfrLockAndHideSitesProps } from './IEfrLockAndHideSitesProps';
-import { escape } from '@microsoft/sp-lodash-subset';
-import * as moment from "moment";
-import {
-  NormalPeoplePicker, TagPicker, ITag
-} from "office-ui-fabric-react/lib/Pickers";
 
-import { PrimaryButton, Button, ButtonType, ActionButton } from "office-ui-fabric-react/lib/Button";
-import { TextField } from "office-ui-fabric-react/lib/TextField";
+import * as moment from "moment";
+
+import {    ActionButton } from "office-ui-fabric-react/lib/Button";
 
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
-import { Label } from "office-ui-fabric-react/lib/Label";
 
-import { Dropdown } from "office-ui-fabric-react/lib/Dropdown";
+
+
 // switch to fabric  ComboBox on next upgrade
 // let Select = require("react-select") as any;
 //import "react-select/dist/react-select.css";
-import { DetailsList, DetailsListLayoutMode, IColumn, SelectionMode, IGroup } from "office-ui-fabric-react/lib/DetailsList";
-import { DatePicker, } from "office-ui-fabric-react/lib/DatePicker";
-import { IPersonaProps } from "office-ui-fabric-react/lib/Persona";
-import { SPComponentLoader } from "@microsoft/sp-loader";
+import { DetailsList,  IColumn, SelectionMode } from "office-ui-fabric-react/lib/DetailsList";
+
+
+
 export default class EfrLockAndHideSites extends React.Component<IEfrLockAndHideSitesProps, {}> {
   /**
  * Renders a formatted date in the UI

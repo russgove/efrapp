@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { TextField, ITextFieldProps } from "office-ui-fabric-react/lib/TextField";
+
 import { IconButton, PrimaryButton, DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { Panel,PanelType } from "office-ui-fabric-react/lib/Panel";
-import { Dialog, DialogType, DialogContent, DialogFooter } from "office-ui-fabric-react/lib/Dialog";
-import { Link, ILinkProps } from "office-ui-fabric-react/lib/Link";
+import {    DialogFooter } from "office-ui-fabric-react/lib/Dialog";
+
 import { RichTextEditor } from "./RichTextEditor";
 export interface ITextFieldWithEditProps {
     value: string;
@@ -31,8 +31,7 @@ export class TextFieldWithEdit extends React.Component<ITextFieldWithEditProps, 
     }
     public render() {
         debugger;
-        let textFieldProps: ITextFieldProps = { value: this.props.value };
-        let linkProps: ILinkProps = {};
+
 
         debugger;
         return (

@@ -6,6 +6,7 @@ export interface IEfrAppProps {
   uploadFile: (file: any, Library: string, filePrefix: string) => Promise<any>;
   getDocuments: (library: string) => Promise<Array<Document>>;
   completeTask: (task: PBCTask) => Promise<any>;
+  reopenTask: (task: PBCTask) => Promise<any>;
   updateTaskComments: (taskId,oldValue, newValue) => Promise<any>;
   closeWindow:()=>void;
   cultureName: string;

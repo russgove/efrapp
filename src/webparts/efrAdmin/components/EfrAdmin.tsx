@@ -2,22 +2,21 @@ import * as React from 'react';
 import styles from './EfrAdmin.module.scss';
 import { IEfrAdminProps } from './IEfrAdminProps';
 import { IEfrAdminState } from './IEfrAdminState';
-import { escape } from '@microsoft/sp-lodash-subset';
-import { Guid } from '@microsoft/sp-core-library';
-import { PrimaryButton, ButtonType } from "office-ui-fabric-react/lib/Button";
+
+
+import { PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { Dropdown } from "office-ui-fabric-react/lib/Dropdown";
-import { Image, ImageFit } from "office-ui-fabric-react/lib/Image";
-import { ListView } from "@pnp/spfx-property-controls";
+
+
 //import { load, exec, toArray } from "../../JsomHelpers"
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import pnp, {
-  WebAddResult, Web, Site, HttpClient, NavigationNodes, NavigationNode, NavigationNodeUpdateResult,
-  ContextInfo, RoleDefinitionBindings, List, ListAddResult, TypedHash, ViewAddResult
+  WebAddResult, Web,
+  ContextInfo, List, ViewAddResult
 } from "sp-pnp-js";
-import { RenderListDataParameters, RenderListDataOptions } from "sp-pnp-js";
-import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
-import { Label } from "office-ui-fabric-react/lib/Label";
-import { RoleDefinitions } from 'sp-pnp-js/lib/sharepoint/roles';
+
+
+
 import { find, map } from "lodash";
 // use jsom to add webpart to editform
 require('sp-init');
@@ -77,7 +76,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     let nnci: SP.NavigationNodeCreationInformation = new SP.NavigationNodeCreationInformation();
     nnci.set_title(title);
     nnci.set_url(url);
-    nnci.set_isExternal(isExternal)
+    nnci.set_isExternal(isExternal);
     const clientContext: SP.ClientContext = new SP.ClientContext(webUrl);
     const web = clientContext.get_web();
     web.get_navigation().get_quickLaunch().add(nnci);
@@ -108,7 +107,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     let itemCount = ql.get_count();
     for (let x = 0; x < itemCount; x++) {
       let item = ql.getItemAtIndex(x);
-      let itemtitle = item.get_title()
+      let itemtitle = item.get_title();
       if (titlesToRemove.indexOf(itemtitle) !== -1) {
         itemsToDelete.push(item);
       }
@@ -159,8 +158,6 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         reject();
       });
     });
-
-    let cnt = webparts.get_count();
     let originalWebPartDef = webparts.get_item(0);
     let originalWebPart = originalWebPartDef.get_webPart();
     originalWebPart.set_hidden(true);
@@ -211,13 +208,11 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     let tasks: Array<any>; // the list of tasks in the TaskMaster list. We need to create on e task for each of these in tye EFRTasks list in the new site
     let taskList: List; // the task list we created  in the new site
     let taskListId: string; // the ID of task list we created  in the new site
-    let contentTypes: Array<any>; /// the content types in the site. We need to add the pnctask content type to the taskList
     let webServerRelativeUrl: string; // the url of the subweb
     let contextInfo: ContextInfo;
     let editformurl: string;
-    let editform: any;
-    let parentSiteUrl: string;
-    let efrTasklistId: string;
+
+
 
     this.addMessage("CreatingSite");
     await pnp.sp.site.getContextInfo().then((context: ContextInfo) => {
@@ -304,11 +299,11 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
           for (const folder of foldersList) {
             await list.rootFolder.folders.add(folder)
               .then((results) => {
-                console.log("created folder")
+                console.log("created folder");
               })
               .catch((error) => {
                 debugger;
-                console.log("error creating folder")
+                console.log("error creating folder");
               });
           }
 

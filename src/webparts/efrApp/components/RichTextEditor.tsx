@@ -13,7 +13,7 @@ export class RichTextEditor extends React.Component<IRichTextEditorProps, IRichT
     private ckeditor;
     private fieldId:string = "richTextEditor"+ Guid.newGuid().toString();
     public componentDidMount() {
-        debugger;
+      
         // see https://github.com/SharePoint/sp-de//cdn.ckeditor.com/4.6.2/full/ckeditor.jsv-docs/issues/374
         // var ckEditorCdn: string = "//cdn.ckeditor.com/4.6.2/full/ckeditor.js";
         var ckEditorCdn: string = this.props.ckEditorUrl;
@@ -31,14 +31,14 @@ export class RichTextEditor extends React.Component<IRichTextEditorProps, IRichT
         this.state = { text: props.value };
     }
     public getValue(){
-        debugger;
+      
         let instance=this.ckeditor.instances[this.fieldId];
         let data = instance.getData();
         return data;
 
     }
     public render() {
-        debugger;
+    
         return (
             <div>
                 <textarea name={this.fieldId} id={this.fieldId} style={{ display: "none" }}>

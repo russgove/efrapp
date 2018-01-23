@@ -6,7 +6,7 @@ import {
   IPropertyPaneConfiguration,
   PropertyPaneTextField
 } from '@microsoft/sp-webpart-base';
-import pnp, { RoleDefinitionBindings, NavigationNodeAddResult, NavigationNodes, NavigationNode, NavigationNodeUpdateResult, SearchQuery, SearchResults, SortDirection, EmailProperties, Items, Web } from "sp-pnp-js";
+import pnp, {     Web } from "sp-pnp-js";
 import * as strings from 'EfrLockAndHideSitesWebPartStrings';
 import EfrLockAndHideSites from './components/EfrLockAndHideSites';
 import { IEfrLockAndHideSitesProps } from './components/IEfrLockAndHideSitesProps';

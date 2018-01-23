@@ -1,9 +1,3 @@
-import pnp,
-{
-    SharePointQueryable,
-    Item,
-
-} from "sp-pnp-js";
 export class PBCTask {
     public Id: number; //id of the splistitem
     public EFRLibrary: string; // library to store the items in
@@ -16,7 +10,7 @@ export class PBCTask {
     public WorkDay: String; // ?? -1 mans 1 day before reporting?
     public EFRComments: string; // user comments
     public DateCompleted: Date; // date the user clicked the complete button
-    public EFRAssignedTo: Array<{ Title: string, UserName: string,EMail:string }>; // users who need to upload the files
+    public EFRAssignedTo: Array<{ Title: string, UserName: string, EMail: string }>; // users who need to upload the files
     public EFRCompletedByUser: "Yes" | "No";// the user clicked the complete button, indicating they were done uploading files
     public VerifiedByAdmin: boolean;//  the admin clicked the verified button indicating the files are good. We should stop sening remonders
     public DoNotSendReminders: boolean; // admin can flip this to have reminders not sent out
