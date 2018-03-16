@@ -30,10 +30,6 @@ export class TextFieldWithEdit extends React.Component<ITextFieldWithEditProps, 
 
     }
     public render() {
-        debugger;
-
-
-        debugger;
         return (
             <div>
                 <div dangerouslySetInnerHTML={{ __html: this.props.value }} />

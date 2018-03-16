@@ -30,7 +30,7 @@
         "documentIframeHeight": 500,
         "EFRLibrariesListName": "EFRLibraries",
         "EFRFoldersListName": "EFRFolders",
-        "taskCompletionNotificationGroups": "testgroup",
+        "taskCompletionNotificationGroups": "EFRNotifications",
         "copyAllAssigneesOnCompletionNotice": true,
         "ckEditorUrl": "https://tronoxglobal.sharepoint.com/sites/CDN/Scripts/ckeditor/v4.5.11/ckeditor.js",
         "settingsList":"Settings"

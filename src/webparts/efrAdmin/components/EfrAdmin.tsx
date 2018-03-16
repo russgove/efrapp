@@ -484,6 +484,8 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       RowLimit: 10,
       ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="TRUE" /></OrderBy><Where><And><Eq><FieldRef Name="EFRAssignedTo" /><Value Type="Integer"><UserID Type="Integer" /></Value></Eq><Eq><FieldRef Name="EFRCompletedByUser" /><Value Type="Text">No</Value></Eq></And></Where>'
     }).then(async (v: ViewAddResult) => {
+      // add this view to the quicklauch
+      await this.AddQuickLaunchItem(window.location.origin + webServerRelativeUrl, "My Open Tasks", window.location.origin + v.data.ServerRelativeUrl, false);
       // set this as the homePage
       let homepage = v.data.ServerRelativeUrl.substr(webServerRelativeUrl.length + 1);
       await newWeb.rootFolder.update({ "WelcomePage": homepage }).then(() => {
@@ -535,6 +537,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="TRUE" /></OrderBy><Where><Eq><FieldRef Name="EFRAssignedTo" /><Value Type="Integer"><UserID Type="Integer" /></Value></Eq></Where>'
     }).then(async (v: ViewAddResult) => {
       debugger;
+      await this.AddQuickLaunchItem(window.location.origin + webServerRelativeUrl, "My Tasks", window.location.origin + v.data.ServerRelativeUrl, false);
       // manipulate the view's fields
       await v.view.fields.removeAll().catch((err) => { debugger; });
       await v.view.fields.add("LinkTitle").catch((err) => { debugger; });

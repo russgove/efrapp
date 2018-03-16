@@ -4,15 +4,17 @@ import { TextFieldWithEdit } from './TextFieldWithEdit';
 import { IEfrAppProps } from './IEfrAppProps';
 import { IEfrAppState } from './IEfrAppState';
 import { CompoundButton, } from "office-ui-fabric-react/lib/Button";
-import { TextField } from "office-ui-fabric-react/lib/TextField";
+//import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { TagPicker, ITag } from "office-ui-fabric-react/lib/Pickers";
 import { Label } from "office-ui-fabric-react/lib/Label";
 import { PBCTask } from "../model";
 import FileList from "./FileList";
+import { IContextualMenuItem } from "office-ui-fabric-react/lib/ContextualMenu";
+import { CommandBar } from "office-ui-fabric-react/lib/CommandBar";
 export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> {
   public constructor(props: IEfrAppProps) {
     super();
-    console.log("in Construrctor");
+
     this.CloseButton = this.CloseButton.bind(this);
     this.CompleteButton = this.CompleteButton.bind(this);
     this.state = {
@@ -29,7 +31,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
    * @memberof EfrApp
    */
   public createSummaryMarkup(html) {
-    console.log("in createSummaryMarkup");
+
     return { __html: html };
   }
 
@@ -42,7 +44,6 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
    * @memberof EfrApp
    */
   public getDateString(dateString: string): string {
-    console.log("in getDateString");
 
     var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     let year = parseInt(dateString.substr(0, 4));
@@ -84,9 +85,9 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
 
     }).catch((err) => {
       debugger;
-      alert("An error occurred reopining this task.")
+      alert("An error occurred reopining this task.");
       console.error(err);
-    })
+    });
   }
   private closeWindow(): void {
     this.props.closeWindow();
@@ -154,36 +155,97 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
    * @memberof EfrApp
    */
   public render(): React.ReactElement<IEfrAppProps> {
-    console.log("ckEditorConfig follows");
-    console.log(this.props.ckEditorConfig);
 
+    let itemsNonFocusable: IContextualMenuItem[] = [
+      {
+        key: "UPLOAed",
+        name: "Upload Files",
+        icon: "Upload",
+        title: this.props.uploadFilesHoverText,
+        onClick: (e) => {
+          var input: HTMLInputElement = document.createElement("input");
+          input.type = "file";
+          // add onchange handler if you wish to get the file :)
+          input.click(); // opening dialog
+          input.onchange = (element) => {
+            let file: any = element.target["files"][0];
+            console.log("uplopading file");
+            this.props.uploadFile(file, this.props.task.EFRLibrary, this.props.task.Title).then((response) => {
+              console.log("getting documents");
+              this.props.getDocuments(this.props.task.EFRLibrary).then((dox) => {
+                console.log("got documents " + dox.length);
+
+                this.setState((current) => ({ ...current, documents: dox }));
+              });
+            }).catch((error) => {
+              console.error("an error occurred uploading the file");
+              console.error(error);
+            });
+          };
+          return false; // avoiding navigation
+        },
+      }
+    ];
+    let farItemsNonFocusable: IContextualMenuItem[] = [
+      {
+        key: "Save", name: "Save", icon: "Save", onClick: this.closeWindow.bind(this),
+        title: this.props.saveHoverText
+
+      },
+      {
+        key: "Task Complete", name: "Task Complete", icon: "Completed", onClick: this.completeTask.bind(this),
+        title: this.props.taskCompleteHoverText,
+        disabled: (this.props.task.EFRCompletedByUser === "Yes" || !this.userIsAssignedTask(this.props.task))
+      },
+      {
+        key: "Reopen Task", name: "Reopen Task", icon: "Refresh", onClick: this.reopenTask.bind(this),
+        
+        disabled: (this.props.task.EFRCompletedByUser === "No" || !this.userIsAssignedTask(this.props.task)),
+        title: this.props.reopenTaskHoverText
+      }
+    ];
     try {
       return (
         <div className={styles.efrApp}>
+          <CommandBar
+            isSearchBoxVisible={false}
+            items={itemsNonFocusable}
+            farItems={farItemsNonFocusable}
+
+          />
           <div className={styles.headerArea}>
-            <div style={{ float: "left", width: "50%" }}>
+            <div style={{ float: "left", width: "70%" }}>
               <table>
-                <tr>
+              <tr>
                   <td>
                     <Label>Reference #:</Label>
                   </td>
                   <td>
-                    <TextField label=""
-
-                      disabled={true}
-                      value={this.props.task.Title} />
+                    {this.props.task.Title}
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <Label>Assigned To:</Label>
+                    <Label>Information Requested:</Label>
                   </td>
                   <td>
-                    <TagPicker
-                      disabled={true}
-                      onResolveSuggestions={null}
-                      defaultSelectedItems={this.getAssignees(this.props.task.EFRAssignedTo)}
-                    />
+                    <span className={styles.informationRequested} dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRInformationRequested)} />
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <Label>Reporting Period:</Label>
+                  </td>
+                  <td>
+                    <span className={styles.informationRequested} dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRPeriod)} />
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <Label>Due Date:</Label>
+                  </td>
+                  <td>
+                    {this.getDateString(this.props.task.EFRDueDate)}
                   </td>
                 </tr>
                 <tr>
@@ -200,39 +262,51 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
                   </td>
                 </tr>
               </table>
+
             </div >
-            <div style={{ float: "left", width: "50%" }}>
-              <this.CompleteButton />
-              <this.CloseButton />
+            <div style={{ float: "left", width: "30%" }}>
+
+              <table>
+               
+                <tr>
+                  <td>
+                    <Label>Assigned To:</Label>
+                  </td>
+                  <td>
+
+                    <TagPicker
+                      disabled={true}
+                      onResolveSuggestions={null}
+                      defaultSelectedItems={this.getAssignees(this.props.task.EFRAssignedTo)}
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <Label>Library:</Label>
+                  </td>
+                  <td>
+                    {this.props.task.EFRLibrary}
+                  </td>
+                </tr>
+              </table>
             </div>
             <div style={{ clear: "both" }}></div>
           </div>
-          <div>
-            Please upload the files containing :
-          <div className={styles.informationRequested} dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRInformationRequested)} />
-            for the period:
-          <div className={styles.informationRequested} dangerouslySetInnerHTML={this.createSummaryMarkup(this.props.task.EFRPeriod)} />
-            to the {this.props.task.EFRLibrary} library on or before {this.getDateString(this.props.task.EFRDueDate)} .<br />
-            You can drag and drop file(s) into the area shaded in blue below, or click the
-             'Choose File' button to select the file(s). Files uploaded this way will be automatically prefixed
-             with the Reference {this.props.task.Title}.
-       </div>
-          <Label className={styles.uploadInstructions} >
-            Alternatively, you can navigate to the {this.props.task.EFRLibrary} using the navigation bar to the left
-       and upload the files to the library using the SharePoint upload function. Note that if you upload this way
-       the files will not be automatically prefixed with {this.props.task.Title}  YOU must prefix the files with  {this.props.task.Title} before
-       uploading OR ELSE!!
-       </Label>
+          <div dangerouslySetInnerHTML={(this.props.task.EFRCompletedByUser === "Yes")?this.createSummaryMarkup(this.props.efrFormInstructionsClosed):this.createSummaryMarkup(this.props.efrFormInstructionsOpen)}>
+          </div>
+
           <FileList
             uploadFile={this.props.uploadFile}
             getDocuments={this.props.getDocuments}
             fetchDocumentWopiFrameURL={this.props.fetchDocumentWopiFrameURL}
             EFRLibrary={this.props.task.EFRLibrary}
             TaskTitle={this.props.task.Title}
-            documents={this.props.documents}
+            documents={this.state.documents}
             documentIframeHeight={this.props.documentIframeHeight}
             documentIframeWidth={this.props.documentIframeWidth}
             enableUpload={this.userIsAssignedTask(this.props.task) && this.props.task.EFRCompletedByUser === "No"}
+            dropZoneText={this.props.dropZoneText}
           />
         </div>
       );

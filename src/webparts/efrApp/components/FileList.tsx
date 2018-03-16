@@ -14,6 +14,7 @@ export interface IFileListProps {
   documentIframeHeight: number;
   documentIframeWidth: number;
   enableUpload: boolean;
+  dropZoneText:string;
 }
 export interface IFileListState {
   documents: Array<Document>;
@@ -63,8 +64,11 @@ export default class FileList extends React.Component<IFileListProps, IFileListS
   public uploadFile(e: any) {
 
     let file: any = e.target["files"][0];
+    console.log("uplopading file");
     this.props.uploadFile(file, this.props.EFRLibrary, this.props.TaskTitle).then((response) => {
+      console.log("getting documents");
       this.props.getDocuments(this.props.EFRLibrary).then((dox) => {
+        console.log("got documents"+dox.length);
         this.setState((current) => ({ ...current, documents: dox }));
       });
     }).catch((error) => {
@@ -82,7 +86,7 @@ export default class FileList extends React.Component<IFileListProps, IFileListS
    * @memberof EfrApp
    */
   public documentRowMouseEnter(document: Document, e: any) {
-    console.log("in documentRowMouseEnter");
+   
 
     // mode passed to fetchDocumentWopiFrameURL: 0: view, 1: edit, 2: mobileView, 3: interactivePreview
     this.props.fetchDocumentWopiFrameURL(document.id, 0, this.props.EFRLibrary).then(url => {
@@ -108,19 +112,18 @@ export default class FileList extends React.Component<IFileListProps, IFileListS
    * @memberof EfrApp
    */
   public documentRowMouseOut(item: Document, e: any) {
-    console.log("in documentRowMouseOut");
+
     this.setState((current) => ({
       ...current,
       documentCalloutTarget: null,
       documentCalloutVisible: false
     }));
-    console.log("mouse exit for " + item.title);
+
   }
   public openDocument(document: Document): void {
-    console.log("in editDocument");
+
     // mode: 0: view, 1: edit, 2: mobileView, 3: interactivePreview
     this.props.fetchDocumentWopiFrameURL(document.id, 0, this.props.EFRLibrary).then(url => {
-      console.log("wopi frame url is " + url);
       if (!url || url === "") {
         window.open(document.serverRalativeUrl, "_blank");
       } else {
@@ -157,22 +160,21 @@ export default class FileList extends React.Component<IFileListProps, IFileListS
           }}><span className={styles.documentTitle} > {item.title}</span></a>
       </div>);
   }
-
+public componentWillReceiveProps(nextProps: IFileListProps){
+  this.setState((current)=>({...current, documents:nextProps.documents}));
+}
   public render(): React.ReactElement<IFileListProps> {
-    console.log("ckEditorConfig follows");
+   
 
- 
     if (this.props.enableUpload) {
-
-
       try {
         return (
           <Dropzone className={styles.dropzone} onDrop={this.onDrop.bind(this)} disableClick={true} >
             <div>
-              Drag and drop files here to upload, or click Choose File below. Click on a file to view it.
+             {this.props.dropZoneText}
           </div>
             <div style={{ float: "left", width: "310px" }}>
-              <DetailsList
+              <DetailsList key="files"
                 layoutMode={DetailsListLayoutMode.fixedColumns}
                 items={this.state.documents}
                 onRenderRow={(props, defaultRender) => <div
@@ -226,8 +228,8 @@ export default class FileList extends React.Component<IFileListProps, IFileListS
                 selectionMode={SelectionMode.none}
                 columns={[
                   {
-                    key: "title", name: "File Name",
-                    fieldName: "title", minWidth: 1, maxWidth: 200,
+                    key: "title", name: "Role Name",
+                    fieldName: "Role_x0020_Name", minWidth: 1, maxWidth: 200,
                     onRender: this.renderItemTitle.bind(this)
                   },
                 ]}

@@ -8,5 +8,6 @@ export interface IEfrAppWebPartProps {
     ckEditorUrl:string; //path to load ckeditor from  (//cdn.ckeditor.com/4.6.2/full/ckeditor.js  OR our  cdn)
    // ckEditorConfig:string; moved to settings list
     settingsList:string;
+   
 
 }

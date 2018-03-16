@@ -16,7 +16,13 @@ export interface IEfrAppProps {
   currentUserLoginName: string;
   ckEditorUrl:string;
   ckEditorConfig:string;
-  
+  efrFormInstructionsOpen:string;// instructions to appear on Open tasks. These are set in the settings listy of the rootweb
+  efrFormInstructionsClosed:string;// instructions to appear on Open tasks. These are set in the settings listy of the rootweb
+  saveHoverText:string;
+  uploadFilesHoverText:string;
+  taskCompleteHoverText:string;
+  reopenTaskHoverText:string;
+  dropZoneText:string;
        
 
 

@@ -4,7 +4,11 @@
   .headerArea{
    :global {
      .ms-Label{
-       text-align: right
+       text-align: right;
+       font-family: Arial, Helvetica, sans-serif;
+       font-size: 8pt;
+      white-space: nowrap;
+   
      }
    }
   }
