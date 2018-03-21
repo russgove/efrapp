@@ -28,6 +28,7 @@
   }
   .documentTitle {
     overflow-wrap: break-word;
+    word-break:break-all;
     display: inline-block;
     width:300px;
     white-space:normal; 
