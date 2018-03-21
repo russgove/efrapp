@@ -331,15 +331,16 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
             console.error(error);
             return;
           });
-          await newWeb.navigation.quicklaunch.add(library["Title"], viewUrl, true).then((response) => {
-            return;
-          }).catch(error => {
-            debugger;
-            this.addMessage("<h1>error adding list to quicklaunch " + library["Title"] + "</h1>");
-            this.addMessage(error.data.responseBody["odata.error"].message.value);
-            console.error(error);
-            return;
-          });
+          // Remove Libraries from Left Nav
+          // await newWeb.navigation.quicklaunch.add(library["Title"], viewUrl, true).then((response) => {
+          //   return;
+          // }).catch(error => {
+          //   debugger;
+          //   this.addMessage("<h1>error adding list to quicklaunch " + library["Title"] + "</h1>");
+          //   this.addMessage(error.data.responseBody["odata.error"].message.value);
+          //   console.error(error);
+          //   return;
+          // });
 
           // Setup security on the library. First, break role inheritance
           await list.breakRoleInheritance(false).then((e) => {

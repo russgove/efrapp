@@ -162,6 +162,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
         name: "Upload Files",
         icon: "Upload",
         title: this.props.uploadFilesHoverText,
+        disabled: (this.props.task.EFRCompletedByUser === "Yes" || !this.userIsAssignedTask(this.props.task)),
         onClick: (e) => {
           var input: HTMLInputElement = document.createElement("input");
           input.type = "file";
@@ -189,7 +190,8 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     let farItemsNonFocusable: IContextualMenuItem[] = [
       {
         key: "Save", name: "Save", icon: "Save", onClick: this.closeWindow.bind(this),
-        title: this.props.saveHoverText
+        title: this.props.saveHoverText,
+        disabled: (this.props.task.EFRCompletedByUser === "Yes" || !this.userIsAssignedTask(this.props.task))
 
       },
       {
