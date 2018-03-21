@@ -506,7 +506,9 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       await v.view.fields.removeAll().catch((err) => { debugger; });
       await v.view.fields.add("LinkTitle").catch((err) => { debugger; });
       await v.view.fields.add("EFRInformationRequested").catch((err) => { debugger; });
+      await v.view.fields.add("EFRPeriod").catch((err) => { debugger; });
       await v.view.fields.add("EFRDueDate").catch((err) => { debugger; });
+      await v.view.fields.add("EFRLibrary").catch((err) => { debugger; });
       await v.view.fields.add("EFRAssignedTo").catch((err) => { debugger; });
       await v.view.fields.add("EFRCompletedByUser").catch((err) => { debugger; });
       this.addMessage("Added My Open Tasks View");
@@ -524,7 +526,11 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       await v.view.fields.removeAll().catch((err) => { debugger; });
       await v.view.fields.add("LinkTitle").catch((err) => { debugger; });
       await v.view.fields.add("EFRInformationRequested").catch((err) => { debugger; });
+      await v.view.fields.add("EFRPeriod").catch((err) => { debugger; });
+
       await v.view.fields.add("EFRDueDate").catch((err) => { debugger; });
+      await v.view.fields.add("EFRLibrary").catch((err) => { debugger; });
+     
       await v.view.fields.add("EFRAssignedTo").catch((err) => { debugger; });
       await v.view.fields.add("EFRCompletedByUser").catch((err) => { debugger; });
       this.addMessage("Added All  Open Tasks View");
@@ -546,7 +552,12 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       await v.view.fields.removeAll().catch((err) => { debugger; });
       await v.view.fields.add("LinkTitle").catch((err) => { debugger; });
       await v.view.fields.add("EFRInformationRequested").catch((err) => { debugger; });
+
+       await v.view.fields.add("EFRPeriod").catch((err) => { debugger; });
+
       await v.view.fields.add("EFRDueDate").catch((err) => { debugger; });
+      await v.view.fields.add("EFRLibrary").catch((err) => { debugger; });
+     
       await v.view.fields.add("EFRAssignedTo").catch((err) => { debugger; });
       await v.view.fields.add("EFRCompletedByUser").catch((err) => { debugger; });
 
@@ -555,7 +566,9 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
     // manipulate the All Items view's fields
     await taskList.views.getByTitle("All Items").fields.add("EFRInformationRequested").catch((err) => { debugger; });
+    await taskList.views.getByTitle("All Items").fields.add("EFRPeriod").catch((err) => { debugger; });
     await taskList.views.getByTitle("All Items").fields.add("EFRDueDate").catch((err) => { debugger; });
+    await taskList.views.getByTitle("All Items").fields.add("EFRLibrary").catch((err) => { debugger; });
     await taskList.views.getByTitle("All Items").fields.add("EFRAssignedTo").catch((err) => { debugger; });
     await taskList.views.getByTitle("All Items").fields.add("EFRCompletedByUser").catch((err) => { debugger; });
     await taskList.views.getByTitle("All Items").fields.add("EFRVerifiedByAdmin").catch((err) => { debugger; });
