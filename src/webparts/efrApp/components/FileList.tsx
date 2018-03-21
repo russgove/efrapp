@@ -89,7 +89,7 @@ export default class FileList extends React.Component<IFileListProps, IFileListS
    
 
     // mode passed to fetchDocumentWopiFrameURL: 0: view, 1: edit, 2: mobileView, 3: interactivePreview
-    this.props.fetchDocumentWopiFrameURL(document.id, 0, this.props.EFRLibrary).then(url => {
+    this.props.fetchDocumentWopiFrameURL(document.id, 3, this.props.EFRLibrary).then(url => {
       // if (!url || url === "") {  // is this causing the download when i hove over a non office doc?
       //   url = document.serverRalativeUrl;
       // }

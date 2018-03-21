@@ -47,7 +47,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
 
     var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     let year = parseInt(dateString.substr(0, 4));
-    let month = parseInt(dateString.substr(5, 2))-1;
+    let month = parseInt(dateString.substr(5, 2)) - 1;
     let day = parseInt(dateString.substr(8, 2));
     return new Date(year, month, day)
       .toLocaleDateString(this.props.cultureName, options);
@@ -164,27 +164,46 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
         title: this.props.uploadFilesHoverText,
         disabled: (this.props.task.EFRCompletedByUser === "Yes" || !this.userIsAssignedTask(this.props.task)),
         onClick: (e) => {
-          var input: HTMLInputElement = document.createElement("input");
-          input.type = "file";
-          // add onchange handler if you wish to get the file :)
-          input.click(); // opening dialog
-          input.onchange = (element) => {
-            let file: any = element.target["files"][0];
-            console.log("uplopading file");
-            this.props.uploadFile(file, this.props.task.EFRLibrary, this.props.task.Title).then((response) => {
-              console.log("getting documents");
-              this.props.getDocuments(this.props.task.EFRLibrary).then((dox) => {
-                console.log("got documents " + dox.length);
+          debugger;
+          var input: any = document.getElementById("TronoxEFRUploadfile");
+          input.click();
 
-                this.setState((current) => ({ ...current, documents: dox }));
-              });
-            }).catch((error) => {
-              console.error("an error occurred uploading the file");
-              console.error(error);
-            });
-          };
-          return false; // avoiding navigation
-        },
+        }
+
+        // the below only works in chrome
+        // onClick: (e) => {
+        //   debugger;
+        //   var input: HTMLInputElement = document.createElement("input");
+        //   input.type = "file";
+        //   // add onchange handler if you wish to get the file :)
+        //   console.log(input);
+
+        //   try {
+        //     input.click(); // opening dialog
+        //     input.onchange = (element) => {
+        //       let file: any = element.target["files"][0];
+        //       console.log("uplopading file");
+        //       this.props.uploadFile(file, this.props.task.EFRLibrary, this.props.task.Title).then((response) => {
+        //         console.log("getting documents");
+        //         this.props.getDocuments(this.props.task.EFRLibrary).then((dox) => {
+        //           console.log("got documents " + dox.length);
+
+        //           this.setState((current) => ({ ...current, documents: dox }));
+        //         });
+        //       }).catch((error) => {
+        //         console.error("an error occurred uploading the file");
+        //         console.error(error);
+        //       });
+        //     };
+        //     return true; // avoiding navigation
+        //   }
+        //   catch (err) {
+        //     debugger
+        //   };
+
+        // },
+        // END OF the below only works in chrome
+
       }
     ];
     let farItemsNonFocusable: IContextualMenuItem[] = [
@@ -201,7 +220,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
       },
       {
         key: "Reopen Task", name: "Reopen Task", icon: "Refresh", onClick: this.reopenTask.bind(this),
-        
+
         disabled: (this.props.task.EFRCompletedByUser === "No" || !this.userIsAssignedTask(this.props.task)),
         title: this.props.reopenTaskHoverText
       }
@@ -209,6 +228,19 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     try {
       return (
         <div className={styles.efrApp}>
+          <input type="file" id="TronoxEFRUploadfile" style={{ "display": "none" }} onChange={element => {
+            let file: any = element.target["files"][0];
+            console.log("uplopading file");
+            this.props.uploadFile(file, this.props.task.EFRLibrary, this.props.task.Title).then((response) => {
+              console.log("getting documents");
+              this.props.getDocuments(this.props.task.EFRLibrary).then((dox) => {
+                console.log("got documents " + dox.length);
+
+                this.setState((current) => ({ ...current, documents: dox }));
+              });
+            })
+          }}
+          />
           <CommandBar
             isSearchBoxVisible={false}
             items={itemsNonFocusable}
@@ -218,7 +250,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
           <div className={styles.headerArea}>
             <div style={{ float: "left", width: "70%" }}>
               <table>
-              <tr>
+                <tr>
                   <td>
                     <Label>Reference #:</Label>
                   </td>
@@ -269,7 +301,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
             <div style={{ float: "left", width: "30%" }}>
 
               <table>
-               
+
                 <tr>
                   <td>
                     <Label>Assigned To:</Label>
@@ -295,7 +327,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
             </div>
             <div style={{ clear: "both" }}></div>
           </div>
-          <div dangerouslySetInnerHTML={(this.props.task.EFRCompletedByUser === "Yes")?this.createSummaryMarkup(this.props.efrFormInstructionsClosed):this.createSummaryMarkup(this.props.efrFormInstructionsOpen)}>
+          <div dangerouslySetInnerHTML={(this.props.task.EFRCompletedByUser === "Yes") ? this.createSummaryMarkup(this.props.efrFormInstructionsClosed) : this.createSummaryMarkup(this.props.efrFormInstructionsOpen)}>
           </div>
 
           <FileList
