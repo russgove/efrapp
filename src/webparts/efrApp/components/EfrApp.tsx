@@ -47,7 +47,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
 
     var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     let year = parseInt(dateString.substr(0, 4));
-    let month = parseInt(dateString.substr(5, 2));
+    let month = parseInt(dateString.substr(5, 2))-1;
     let day = parseInt(dateString.substr(8, 2));
     return new Date(year, month, day)
       .toLocaleDateString(this.props.cultureName, options);
