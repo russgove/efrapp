@@ -3,28 +3,35 @@
   "id": "c9c6282a-e6ac-4a7c-8eb5-8ba2c8b213a6",
   "alias": "EfrAdminWebPart",
   "componentType": "WebPart",
-
   "version": "*",
   "manifestVersion": 2,
-"requiresCustomScript": false,
-
-  "preconfiguredEntries": [{
-    "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
-    "group": { "default": "Other" },
-    "title": { "default": "EFR Admin App" },
-    "description": { "default": "Admin functions for EFRSite" },
-    "officeFabricIconFontName": "Page",
-    "properties": {
-      "webPartXml": '<webParts>      <webPart xmlns="http://schemas.microsoft.com/WebPart/v3">        <metaData>          <type name="Microsoft.SharePoint.WebPartPages.ClientSideWebPart, Microsoft.SharePoint, Version=16.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c" />          <importErrorMessage>Cannot Import WebPart</importErrorMessage>        </metaData>        <data>          <properties>            <property name="AllowZoneChange" type="bool">True</property>            <property name="HelpUrl" type="string" />            <property name="Hidden" type="bool">False</property>            <property name="MissingAssembly" type="string">Cannot Import WebPart</property>            <property name="Description" type="string">EFR Task Edit Form</property>            <property name="AllowHide" type="bool">True</property>            <property name="AllowMinimize" type="bool">True</property>            <property name="ExportMode" type="exportmode">All</property>            <property name="Title" type="string">EFR Task Edit Form</property>            <property name="TitleUrl" type="string" />            <property name="ClientSideWebPartData" type="string">&lt;div data-sp-webpart="" data-sp-webpartdataversion=1.0 data-sp-webpartdata="&amp;#123;&amp;quot;id&amp;quot;&amp;#58;&amp;quot;758c4314-0c10-48a4-bf53-81212953c9b0&amp;quot;,&amp;quot;instanceId&amp;quot;&amp;#58;&amp;quot;g_c6f86c40_9985_469a_92f6_92f3eb337101&amp;quot;,&amp;quot;title&amp;quot;&amp;#58;&amp;quot;EFR Task Edit Form&amp;quot;,&amp;quot;description&amp;quot;&amp;#58;&amp;quot;EFR Task Edit Form&amp;quot;,&amp;quot;dataVersion&amp;quot;&amp;#58;&amp;quot;1.0&amp;quot;,&amp;quot;properties&amp;quot;&amp;#58;&amp;#123;&amp;quot;description&amp;quot;&amp;#58;&amp;quot;EFR Task Edit Form&amp;quot;,&amp;quot;taskListName&amp;quot;&amp;#58;&amp;quot;EFRTasks&amp;quot;,&amp;quot;documentIframeWidth&amp;quot;&amp;#58;500,&amp;quot;documentIframeHeight&amp;quot;&amp;#58;500,&amp;quot;EFRLibrariesListName&amp;quot;&amp;#58;&amp;quot;EFRLibraries&amp;quot;,&amp;quot;EFRFoldersListName&amp;quot;&amp;#58;&amp;quot;EFRFolders&amp;quot;,&amp;quot;taskCompletionNotificationGroups&amp;quot;&amp;#58;&amp;quot;testgroup&amp;quot;,&amp;quot;copyAllAssigneesOnCompletionNotice&amp;quot;&amp;#58;true,&amp;quot;ckEditorUrl&amp;quot;&amp;#58;&amp;quot;https&amp;#58;//tronoxglobal.sharepoint.com/sites/CDN/Scripts/ckeditor/v4.5.11/ckeditor.js&amp;quot;,&amp;quot;settingsList&amp;quot;&amp;#58;&amp;quot;Settings&amp;quot;&amp;#125;&amp;#125;" data-sp-splinksapplied=true&gt;&lt;div data-sp-componentid=""&gt;758c4314-0c10-48a4-bf53-81212953c9b0&lt;/div&gt;&lt;div data-sp-htmlproperties=""&gt;&lt;/div&gt;&lt;/div&gt;</property>            <property name="ChromeType" type="chrometype">Default</property>            <property name="AllowConnect" type="bool">True</property>            <property name="Width" type="string" />            <property name="Height" type="string" />            <property name="CatalogIconImageUrl" type="string" />            <property name="HelpMode" type="helpmode">Modeless</property>            <property name="ClientSideWebPartId" type="System.Guid, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">758c4314-0c10-48a4-bf53-81212953c9b0</property>            <property name="AllowEdit" type="bool">True</property>            <property name="TitleIconImageUrl" type="string" />            <property name="Direction" type="direction">NotSet</property>            <property name="AllowClose" type="bool">True</property>            <property name="ChromeState" type="chromestate">Normal</property>          </properties>        </data>      </webPart>    </webParts>',
-     "templateName":"STS#0",
-      "EFRLibrariesListName":"EFRLibraries",
-      "EFRFoldersListName":"EFRFolders",
-      "WriteAccessGroups":"EFR Site Admins",
-      "ReadAccessGroups":"EFR Visitors",
-      "PBCMasterLists":"PBCMaster,PBCMaster-YearEnd",
-      "PBCMaximumTasks": 500,
-      "PBCTaskContentTypeId":"0x0100F2A5ABE2D8166E4E9A3C888E1DB4DC8B",
-      "permissionToGrantToLibraries":"Content Authors without delete or modify"
+  "requiresCustomScript": false,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
+      "group": {
+        "default": "Other"
+      },
+      "title": {
+        "default": "EFR Admin App"
+      },
+      "description": {
+        "default": "Admin functions for EFRSite"
+      },
+      "officeFabricIconFontName": "Page",
+      "properties": {
+        "webPartXml": "<webParts>      <webPart xmlns='http://schemas.microsoft.com/WebPart/v3'>        <metaData>          <type name='Microsoft.SharePoint.WebPartPages.ClientSideWebPart, Microsoft.SharePoint, Version=16.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c' />          <importErrorMessage>Cannot Import WebPart</importErrorMessage>        </metaData>        <data>          <properties>            <property name='AllowZoneChange' type='bool'>True</property>            <property name='HelpUrl' type='string' />            <property name='Hidden' type='bool'>False</property>            <property name='MissingAssembly' type='string'>Cannot Import WebPart</property>            <property name='Description' type='string'>EFR Task Edit Form</property>            <property name='AllowHide' type='bool'>True</property>            <property name='AllowMinimize' type='bool'>True</property>            <property name='ExportMode' type='exportmode'>All</property>            <property name='Title' type='string'>EFR Task Edit Form</property>            <property name='TitleUrl' type='string' />            <property name='ClientSideWebPartData' type='string'>&lt;div data-sp-webpart='' data-sp-webpartdataversion=1.0 data-sp-webpartdata='&amp;#123;&amp;quot;id&amp;quot;&amp;#58;&amp;quot;758c4314-0c10-48a4-bf53-81212953c9b0&amp;quot;,&amp;quot;instanceId&amp;quot;&amp;#58;&amp;quot;g_708ee242_7fac_4d6c_a1b7_741f6b93e651&amp;quot;,&amp;quot;title&amp;quot;&amp;#58;&amp;quot;EFR Task Edit Form&amp;quot;,&amp;quot;description&amp;quot;&amp;#58;&amp;quot;EFR Task Edit Form&amp;quot;,&amp;quot;dataVersion&amp;quot;&amp;#58;&amp;quot;1.0&amp;quot;,&amp;quot;properties&amp;quot;&amp;#58;&amp;#123;&amp;quot;description&amp;quot;&amp;#58;&amp;quot;EFR Task Edit Form&amp;quot;,&amp;quot;taskListName&amp;quot;&amp;#58;&amp;quot;EFRTasks&amp;quot;,&amp;quot;documentIframeWidth&amp;quot;&amp;#58;500,&amp;quot;documentIframeHeight&amp;quot;&amp;#58;500,&amp;quot;EFRLibrariesListName&amp;quot;&amp;#58;&amp;quot;EFRLibraries&amp;quot;,&amp;quot;EFRFoldersListName&amp;quot;&amp;#58;&amp;quot;EFRFolders&amp;quot;,&amp;quot;taskCompletionNotificationGroups&amp;quot;&amp;#58;&amp;quot;EFRNotifications&amp;quot;,&amp;quot;copyAllAssigneesOnCompletionNotice&amp;quot;&amp;#58;true,&amp;quot;ckEditorUrl&amp;quot;&amp;#58;&amp;quot;https&amp;#58;//tronoxglobal.sharepoint.com/sites/CDN/Scripts/ckeditor/v4.5.11/ckeditor.js&amp;quot;,&amp;quot;settingsList&amp;quot;&amp;#58;&amp;quot;Settings&amp;quot;&amp;#125;&amp;#125;' data-sp-splinksapplied=true&gt;&lt;div data-sp-componentid=''&gt;758c4314-0c10-48a4-bf53-81212953c9b0&lt;/div&gt;&lt;div data-sp-htmlproperties=''&gt;&lt;/div&gt;&lt;/div&gt;</property>            <property name='ChromeType' type='chrometype'>Default</property>            <property name='AllowConnect' type='bool'>True</property>            <property name='Width' type='string' />            <property name='Height' type='string' />            <property name='CatalogIconImageUrl' type='string' />            <property name='HelpMode' type='helpmode'>Modeless</property>            <property name='ClientSideWebPartId' type='System.Guid, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'>758c4314-0c10-48a4-bf53-81212953c9b0</property>            <property name='AllowEdit' type='bool'>True</property>            <property name='TitleIconImageUrl' type='string' />            <property name='Direction' type='direction'>NotSet</property>            <property name='AllowClose' type='bool'>True</property>            <property name='ChromeState' type='chromestate'>Normal</property>          </properties>        </data>      </webPart>    </webParts>",
+        "templateName": "STS#0",
+        "EFRLibrariesListName": "EFRLibraries",
+        "EFRFoldersListName": "EFRFolders",
+        "WriteAccessGroups": "EFR Site Admins",
+        "ReadAccessGroups": "EFR Visitors",
+        "PBCMasterLists": "PBCMaster,PBCMaster-YearEnd",
+        "PBCMaximumTasks": 500,
+        "PBCTaskContentTypeId": "0x0100F2A5ABE2D8166E4E9A3C888E1DB4DC8B",
+        "permissionToGrantToLibraries": "Content Authors without delete or modify",
+        "permissionToGrantToTaskList": "Content Authors without delete or modify"
+      }
     }
-  }]
+  ]
 }

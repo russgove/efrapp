@@ -200,7 +200,7 @@ public componentWillReceiveProps(nextProps: IFileListProps){
             </div>
             <div style={{ clear: "both" }}></div>
 
-            <input type="file" id="uploadfile" onChange={e => { this.uploadFile(e); }} />
+            {/* <input type="file" id="uploadfile" onChange={e => { this.uploadFile(e); }} /> */}
           </Dropzone>
 
 

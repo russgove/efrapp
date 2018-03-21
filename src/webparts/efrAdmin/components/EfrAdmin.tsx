@@ -102,7 +102,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         reject();
       });
     });
-    debugger;
+ 
     let itemsToDelete = [];
     let itemCount = ql.get_count();
     for (let x = 0; x < itemCount; x++) {
@@ -123,12 +123,12 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         reject();
       });
     });
-    debugger;
+  
 
   }
 
   public async fixUpLeftNav(webUrl: string, homeUrl: string) {
-    debugger;
+   
     await this.AddQuickLaunchItem(webUrl, "EFR Home", homeUrl, true);
     await this.RemoveQuickLaunchItem(webUrl, ["Pages", "Documents"]);
 
@@ -202,7 +202,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
     let newWeb: Web;  // the web that gets created
     let libraryList: Array<any>; // the list of libraries we need to create in the new site. has the library name and the name of the group that should get access
-    let foldersList: Array<string>; // the list of folders to create in each of the libraries.
+    // let foldersList: Array<string>; // the list of folders to create in each of the libraries.
     let roleDefinitions: Array<any>;// the roledefs for the site, we need to grant 'contribute no delete'
     let siteGroups: Array<any>;// all the sitegroups in the site
     let tasks: Array<any>; // the list of tasks in the TaskMaster list. We need to create on e task for each of these in tye EFRTasks list in the new site
@@ -211,6 +211,8 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     let webServerRelativeUrl: string; // the url of the subweb
     let contextInfo: ContextInfo;
     let editformurl: string;
+
+
 
 
 
@@ -235,9 +237,10 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     });
 
     await this.SetWebToUseSharedNavigation(webServerRelativeUrl);
-    debugger;
+   
     await this.fixUpLeftNav(webServerRelativeUrl, this.props.siteUrl);
-    // now get  the list of libraries we need to create on the new site
+    // now get  the list of libraries we need to create on the new site,
+
     await pnp.sp.web.lists.getByTitle(this.props.EFRLibrariesListName).items
       //   .top(2)
       .get().then((libraries) => {
@@ -252,16 +255,16 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         return;
       });
     // now get  the list of folders  we need to create in each library
-    foldersList = await pnp.sp.web.lists.getByTitle(this.props.EFRFoldersListName).items.get().then((folders) => {
-      this.addMessage("got list of folders");
-      return map(folders, (f) => { return f["Title"]; });
-    }).catch(error => {
-      debugger;
-      this.addMessage("<h1>error fetching folder list</h1>");
-      this.addMessage(error.data.responseBody["odata.error"].message.value);
-      console.error(error);
-      return null;
-    });
+    // foldersList = await pnp.sp.web.lists.getByTitle(this.props.EFRFoldersListName).items.get().then((folders) => {
+    //   this.addMessage("got list of folders");
+    //   return map(folders, (f) => { return f["Title"]; });
+    // }).catch(error => {
+    //   debugger;
+    //   this.addMessage("<h1>error fetching folder list</h1>");
+    //   this.addMessage(error.data.responseBody["odata.error"].message.value);
+    //   console.error(error);
+    //   return null;
+    // });
     // get the role definitions
     await pnp.sp.web.roleDefinitions.get().then((roleDefs) => {
       this.addMessage("got roledefinitions");
@@ -287,6 +290,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       return;
     });
     // create the libraries and assign permissions
+    // Also give the groups access to the site
     for (const library of libraryList) {
       if (!library["EFRsecurityGroup"]) {
         this.addMessage("bypassing Library " + library["Title"] + "because it has no security group");
@@ -296,16 +300,16 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
           this.addMessage("Created Library " + library["Title"]);
           let list = listResponse.list;
 
-          for (const folder of foldersList) {
-            await list.rootFolder.folders.add(folder)
-              .then((results) => {
-                console.log("created folder");
-              })
-              .catch((error) => {
-                debugger;
-                console.log("error creating folder");
-              });
-          }
+          // for (const folder of foldersList) {
+          //   await list.rootFolder.folders.add(folder)
+          //     .then((results) => {
+          //       console.log("created folder");
+          //     })
+          //     .catch((error) => {
+          //       debugger;
+          //       console.log("error creating folder");
+          //     });
+          // }
 
           // await folderBatch.execute().then((results) => {
           //   console.log("executed batch");
@@ -400,7 +404,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       }
 
     }
-    // get the master list of tasks
+    // get the master list of tasks, Either PBCMaster or PBCMaster YearEnd from the rootweb
     await pnp.sp.web.lists.getByTitle(this.state.pbcMasterList).items.expand("EFRLibrary").select("*,EFRLibrary/Title")
       .top(this.props.PBCMaximumTasks)
       .get().then((efrtasks) => {
@@ -478,7 +482,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       console.error(error);
       return;
     });
-    debugger;
+  
     //add the default view to show only open items assigned to me sorted bt date descening
     await taskList.views.add("My Open Tasks", false, {
       RowLimit: 10,
@@ -531,7 +535,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
     //add the a view to show alln items assigned to me sorted bt date descening
     //add the default view to show only open items assigned to me sorted bt date descening
-    await taskList.views.add("My Tasks", false, {
+    await taskList.views.add("All My Tasks", false, {
       RowLimit: 10,
       DefaultView: true,
       ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="TRUE" /></OrderBy><Where><Eq><FieldRef Name="EFRAssignedTo" /><Value Type="Integer"><UserID Type="Integer" /></Value></Eq></Where>'
@@ -560,35 +564,82 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     // create the tasks in the new task list
     debugger;
     for (const task of tasks) {
+      debugger;
+      if (task.IsActive !== "No") {
 
-      let itemToAdd = {
-        "ContentTypeId": this.props.PBCTaskContentTypeId,
-        "Title": task.Title,
-        "EFRDueDate": task.DueDate,
-        "EFRAssignedToId": {
-          "results": task.EFRAssignedToId
-        },
-        "EFRInformationRequested": task.InformationRequested,
-        "EFRLibraryId": task.EFRLibraryId,
-        "EFRPeriod": task.Period,
-        "EFRCompletedByUser": "No",
-        "EFRVerifiedByAdmin": "No"
-      };
-      await taskList.items.add(itemToAdd).then((results) => {
-        this.addMessage("added task " + task.Title);
-        return;
-      }).catch(error => {
-        debugger;
-        this.addMessage("<h1>error adding task " + task["Title"] + "</h1>");
-        this.addMessage(error.data.responseBody["odata.error"].message.value);
-        console.error(error);
-        return;
-      });
+        let itemToAdd = {
+          "ContentTypeId": this.props.PBCTaskContentTypeId,
+          "Title": task.Title,
+          "EFRDueDate": task.DueDate,
+          "EFRAssignedToId": {
+            "results": task.EFRAssignedToId
+          },
+          "EFRInformationRequested": task.InformationRequested,
+          "EFRLibraryId": task.EFRLibraryId,
+          "EFRPeriod": task.Period,
+          "EFRCompletedByUser": "No",
+          "EFRVerifiedByAdmin": "No"
+        };
+        await taskList.items.add(itemToAdd).then((results) => {
+          this.addMessage("added task " + task.Title);
+          return;
+        }).catch(error => {
+          debugger;
+          this.addMessage("<h1>error adding task " + task["Title"] + "</h1>");
+          this.addMessage(error.data.responseBody["odata.error"].message.value);
+          console.error(error);
+          return;
+        });
+      }
     }
 
     // add the workflow to the task list
     // 2010 workflow is associate with the content type
     //await this.addNotificationWorkflow(contextInfo.SiteFullUrl, taskListId)
+
+
+    //now we need to gramt permissions to the task list
+    // each library has an associated group that gives them access to the library. 
+    // those groups need access to the task list as well
+    await taskList.breakRoleInheritance(true)
+      .then(async (results) => {
+        debugger;
+        this.addMessage("Broke role inheritance on task list");
+        /////////////////////////////////////////////////////////////////////////////////////////////
+        for (const library of libraryList) {
+          if (!library["EFRsecurityGroup"]) {
+            this.addMessage(`Bypassing Library ${library["Title"]} because it has no security group`);
+          } else {
+            this.addMessage(`Granting group ${library["EFRsecurityGroup"]} access to the task list.`);
+
+            let group = find(siteGroups, (sg => { return sg["Title"] === library["EFRsecurityGroup"]; }));
+            let principlaID = group["Id"];
+            let roledef = find(roleDefinitions, (rd => { return rd["Name"] === this.props.permissionToGrantToTaskList; }));
+            let roleDefId = roledef["Id"];
+            await taskList.roleAssignments.add(principlaID, roleDefId)
+              .then(() => {
+                this.addMessage(`Granted group ${library["EFRsecurityGroup"]} access to the task list.`);
+              })
+              .catch(error => {
+                debugger;
+                this.addMessage(`Error granting group ${library["EFRsecurityGroup"]} access to the task list.`);
+                this.addMessage(error.data.responseBody["odata.error"].message.value);
+                console.error(error);
+                return;
+              });
+          }
+        }
+      })
+      .catch(err => {
+        this.addMessage("Error breaking role inheritance on task list");
+      });
+
+    /////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
 
     this.addMessage("DONE!!");
   }

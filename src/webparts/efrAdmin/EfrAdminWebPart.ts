@@ -24,6 +24,7 @@ export interface IEfrAdminWebPartProps {
   PBCMaximumTasks:number; // can up thi sto 2000, then need to break into multiple calls
   PBCTaskContentTypeId:string; // the content type id to add to the EFR task list in the subsite 
   permissionToGrantToLibraries:string;//the permissions used to grant to library specific groups
+  permissionToGrantToTaskList:string;//the permissions used to grant to the PBR Task list
 }
 
 export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebPartProps> {
@@ -52,6 +53,7 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
         PBCMaximumTasks:this.properties.PBCMaximumTasks,
         PBCTaskContentTypeId:this.properties.PBCTaskContentTypeId,
         permissionToGrantToLibraries:this.properties.permissionToGrantToLibraries,
+        permissionToGrantToTaskList:this.properties.permissionToGrantToTaskList,
         siteUrl:this.context.pageContext.site.serverRelativeUrl,
      
 
@@ -111,6 +113,9 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
                 }),
                 PropertyPaneTextField("permissionToGrantToLibraries", {
                   label: "The Permission to grant to the EFR Libraries (Content Authors without delete or modify)"
+                }),
+                PropertyPaneTextField("permissionToGrantToTaskList", {
+                  label: "The Permission to grant to the Task List (Content Authors without delete or modify)"
                 }),
                 
                  

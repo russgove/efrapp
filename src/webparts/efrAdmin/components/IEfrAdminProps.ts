@@ -10,6 +10,7 @@ export interface IEfrAdminProps {
   PBCMaximumTasks:number;
   PBCTaskContentTypeId:string; // the content type id to add to the EFR task list in the subsite 
   permissionToGrantToLibraries:string;//the permissions used to grant to library specific groups
+  permissionToGrantToTaskList:string;//the permissions used to grant to library specific groups
   siteUrl:string;
   
 }
