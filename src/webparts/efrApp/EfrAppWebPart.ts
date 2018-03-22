@@ -38,19 +38,25 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     });
   }
   public async loadData(): Promise<any> {
-
+    console.log(`In LoadData`);
     let taskListName: string;
     let itemid: number;
     if (this.context.pageContext.list !== undefined) {
+      console.log(`In LoadData listname from context is ${this.context.pageContext.list.title}`);
       taskListName = this.context.pageContext.list.title;
     } else {
+      console.log(`In LoadData listname from props is  ${this.properties.taskListName}`);
       taskListName = this.properties.taskListName;
     }
     if (this.context.pageContext.listItem !== undefined) {
       itemid = this.context.pageContext.listItem.id;
+      console.log(`In LoadData itemid from context is  ${this.context.pageContext.listItem.id}`);
+  
     } else {
       var queryParameters: UrlQueryParameterCollection = new UrlQueryParameterCollection(window.location.href);
-      itemid = parseInt(queryParameters.getValue("ID"));
+          itemid = parseInt(queryParameters.getValue("ID"));
+          console.log(`In LoadData itemid from context is  ${itemid}`);
+
     }
     // get the seeings list (it has all the email templates)
     await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.helpLinksListName).items.getAs<Array<HelpLink>>().then((helps => {
@@ -75,7 +81,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       getByTitle(taskListName).
       items.getById(itemid).expand("EFRAssignedTo")
       .expand("EFRAssignedTo")
-      .select("Title,Id,EFRComments,EFRCompletedByUser,EFRLibraryId,EFRInformationRequested,EFRPeriod,EFRDueDate,EFRDateCompleted,EFRAssignedTo/Title,EFRAssignedTo/UserName,EFRAssignedTo/EMail").getAs<PBCTask>()
+      .select("Title,Id,EFRComments,EFRCompletedByUser,EFRLibraryId,EFRInformationRequested,EFRPeriod,EFRDueDate,EFRDateCompleted,EFRAssignedTo/Title,EFRAssignedTo/UserName").getAs<PBCTask>()
       .then(async (task) => {
         this.task = task;
         this.task.EFRLibrary = await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.EFRLibrariesListName)
@@ -83,6 +89,8 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
             return efrLib.Title;
           }).catch((err) => {
             debugger;
+            alert("There was an error fetching the EFR Libraries List");
+            alert(err.data.responseBody["odata.error"].message.value);
             console.error(err);
             return null;
           });
@@ -122,19 +130,21 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       return pnp.sp.web.lists.getByTitle(Library).rootFolder.files.add(fileName, file, false) // last param FALSE! cannot allow overwrite
         .then((results) => {
           console.log("uploadfile added small file");
+          return;
           // so we'll stor all items in a single library with a  Reference to th epbcTask
-          return results.file.getItem().then(item => {
-            console.log("uploadfile got item");
-            return item.update({ Title: fileName }).then((r) => {
-              console.log("uploadfile updated item");
-              return;
-            }).catch((err) => {
-              debugger;
-              console.error(err);
-              alert("There was an error updating the properties on the file");
-              alert(err.data.responseBody["odata.error"].message.value);
-            });
-          });
+          // this doesnt work , users d not have update priveleges
+          // return results.file.getItem().then(item => {
+          //   console.log("uploadfile got item");
+          //   return item.update({ Title: fileName }).then((r) => {
+          //     console.log("uploadfile updated item");
+          //     return;
+          //   }).catch((err) => {
+          //     debugger;
+          //     console.error(err);
+          //     alert("There was an error updating the properties on the file");
+          //     alert(err.data.responseBody["odata.error"].message.value);
+          //   });
+          // });
         }).catch((err) => {
           console.error(err);
           alert("There was an error updloading the file");
@@ -146,16 +156,18 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
           console.log({ data: data, message: "progress" });
         }, true)
         .then((results) => {
-          return results.file.getItem().then(item => {
-            return item.update({ Title: fileName }).then((r) => {
-              return;
+          return;
+          // users do not have update priveleges
+          // return results.file.getItem().then(item => {
+          //   return item.update({ Title: fileName }).then((r) => {
+          //     return;
               
-            }).catch((err) => {
-              console.log(err);
-              alert("There was an error updating the properties on the file");
-              alert(err.data.responseBody["odata.error"].message.value);
-            });
-          });
+          //   }).catch((err) => {
+          //     console.log(err);
+          //     alert("There was an error updating the properties on the file");
+          //     alert(err.data.responseBody["odata.error"].message.value);
+          //   });
+          // });
         })
         .catch((err) => {
           console.log(err);
@@ -414,9 +426,11 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       let docs: Array<Document> =
         map(temp, (f) => {
           let doc: Document = new Document();
-
+          debugger;
           doc.id = f["Id"];
-          doc.title = f["Title"];
+          //doc.title = f["Title"]; this is on the list item. users needed update to set it
+          doc.title = f["File"]["Name"]; // use the name of the file instead
+          
           doc.serverRalativeUrl = f["File"]["ServerRelativeUrl"];
           return doc;
         });
