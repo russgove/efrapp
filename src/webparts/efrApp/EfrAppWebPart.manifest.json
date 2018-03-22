@@ -33,7 +33,9 @@
         "taskCompletionNotificationGroups": "EFRNotifications",
         "copyAllAssigneesOnCompletionNotice": true,
         "ckEditorUrl": "https://tronoxglobal.sharepoint.com/sites/CDN/Scripts/ckeditor/v4.5.11/ckeditor.js",
-        "settingsList":"Settings"
+        "settingsList":"Settings",
+        "helpLinksListName":"HelpLinks" // THIS LIST IS ON THE ROOTWEB!!!
+        
       }
     }
   ]

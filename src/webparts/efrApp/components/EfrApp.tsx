@@ -7,10 +7,11 @@ import { CompoundButton, } from "office-ui-fabric-react/lib/Button";
 //import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { TagPicker, ITag } from "office-ui-fabric-react/lib/Pickers";
 import { Label } from "office-ui-fabric-react/lib/Label";
-import { PBCTask } from "../model";
+import { PBCTask,HelpLink } from "../model";
 import FileList from "./FileList";
 import { IContextualMenuItem } from "office-ui-fabric-react/lib/ContextualMenu";
 import { CommandBar } from "office-ui-fabric-react/lib/CommandBar";
+import {map} from "lodash";
 export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> {
   public constructor(props: IEfrAppProps) {
     super();
@@ -148,6 +149,10 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
       this.setState((current) => ({ ...current, taskComments: newValue }));
     });
   }
+  public showHelp(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
+    debugger;
+    window.open(item.data.url,item.data.name,item.data.specs);
+  }
   /**
    * renders the page
    * 
@@ -223,6 +228,22 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
 
         disabled: (this.props.task.EFRCompletedByUser === "No" || !this.userIsAssignedTask(this.props.task)),
         title: this.props.reopenTaskHoverText
+      },
+      {
+        key: "helpLinks", name: "Help", icon: "help",
+        title: this.props.helpHoverText,
+        items: map(this.props.helpLinks,(hl):IContextualMenuItem=>{
+          debugger;
+          return{
+            key:hl.Id.toString(), // this is the id of the listitem
+            href:hl.Url.Url, 
+            title:hl.Url.Description,
+            icon:hl.IconName,
+            name:hl.Title,
+            target:hl.Target
+
+          }
+        })
       }
     ];
     try {
@@ -238,7 +259,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
 
                 this.setState((current) => ({ ...current, documents: dox }));
               });
-            })
+            });
           }}
           />
           <CommandBar

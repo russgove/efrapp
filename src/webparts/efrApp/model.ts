@@ -16,6 +16,18 @@ export class PBCTask {
     public DoNotSendReminders: boolean; // admin can flip this to have reminders not sent out
 
 }
+export class HelpLink {
+    public Id: number; //id of the splistitem
+    public Title: string; // library to store the items in
+    public IconName: string; // the Reference # from the PBC list Mapped to Title in list
+    public Url: {
+        Description:string,
+        Url:string
+    };
+    public Target: string; // period info is needed for
+    public Specs: string; // date the user needs to upload the files by
+  
+}
 export class Document {
     public title: string;
     public id: number;

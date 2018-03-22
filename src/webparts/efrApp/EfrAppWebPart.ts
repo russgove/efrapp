@@ -19,7 +19,7 @@ import { IEfrAppProps } from "./components/IEfrAppProps";
 import { IEfrAppWebPartProps } from "./IEfrAppWebPartProps";
 //import UrlQueryParameterCollection from "@microsoft/sp-core-library/lib/url/UrlQueryParameterCollection";
 import { map, filter, find } from "lodash";
-import { Document } from "./model";
+import { Document ,HelpLink} from "./model";
 export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartProps> {
   private reactElement: React.ReactElement<IEfrAppProps>;
   private formComponent: EfrApp;
@@ -27,6 +27,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
   private task: PBCTask;
   private documents: Array<Document>;
   private settings: Array<Setting>;
+  private helpLinks:Array<HelpLink>;
   public onInit(): Promise<void> {
     return super.onInit().then(_ => {
 
@@ -37,8 +38,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     });
   }
   public async loadData(): Promise<any> {
-    // const list = this.context.pageContext.list;
-  //  const listitem = this.context.pageContext.listItem;
+
     let taskListName: string;
     let itemid: number;
     if (this.context.pageContext.list !== undefined) {
@@ -53,6 +53,15 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       itemid = parseInt(queryParameters.getValue("ID"));
     }
     // get the seeings list (it has all the email templates)
+    await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.helpLinksListName).items.getAs<Array<HelpLink>>().then((helps => {
+      debugger;
+      this.helpLinks = helps;
+    })).catch((err) => {
+      console.error(err);
+      debugger;
+      alert("There was an error fetching the helplinks");
+      alert(err.data.responseBody["odata.error"].message.value);
+    });
 
     await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.settingsList).items.getAs<Array<Setting>>().then((settingsResponse => {
       this.settings = settingsResponse;
@@ -362,6 +371,8 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
         taskCompleteHoverText:find(this.settings, (setting) => { return setting.Title === "TaskCompleteHoverText"; }).PlainText,
         reopenTaskHoverText:find(this.settings, (setting) => { return setting.Title === "ReopenTaskHoverText"; }).PlainText,
         dropZoneText:find(this.settings, (setting) => { return setting.Title === "DropZoneText"; }).PlainText,
+        helpHoverText:find(this.settings, (setting) => { return setting.Title === "HelpHoverText"; }).PlainText,
+        helpLinks:this.helpLinks
       
       }
     );
@@ -484,6 +495,9 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
 
                 PropertyPaneTextField("taskCompletionNotificationGroups", {
                   label: "Group to send emails to when tasks are completed and reopened"
+                }),
+                PropertyPaneTextField("helpLinksListName", {
+                  label: "list of Help Links"
                 }),
 
 

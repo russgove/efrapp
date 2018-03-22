@@ -1,4 +1,4 @@
-import { PBCTask, Document } from "../model";
+import { PBCTask, Document,HelpLink } from "../model";
 
 export interface IEfrAppProps {
   task: PBCTask;
@@ -23,6 +23,8 @@ export interface IEfrAppProps {
   taskCompleteHoverText:string;
   reopenTaskHoverText:string;
   dropZoneText:string;
+  helpHoverText:string;
+  helpLinks:Array<HelpLink>;
        
 
 
