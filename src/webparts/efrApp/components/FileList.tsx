@@ -5,9 +5,10 @@ import { DetailsList, DetailsListLayoutMode, IColumn, SelectionMode } from "offi
 import { Document } from "../model";
 import Dropzone from 'react-dropzone';
 export interface IFileListProps {
-  uploadFile: (file: any, Library: string, filePrefix: string) => Promise<any>;
+  uploadFile: (file: any, Library: string, filePrefix: string,setMessage:(message)=>void) => Promise<any>;
   getDocuments: (library: string) => Promise<Array<Document>>;
   fetchDocumentWopiFrameURL: (id: number, mode: number, library: string) => Promise<string>;
+  setMessage:(m)=>void;
   EFRLibrary: string;
   TaskTitle: string;
   documents: Array<Document>;
@@ -44,7 +45,7 @@ export default class FileList extends React.Component<IFileListProps, IFileListS
     console.log("in onDrop");
     let promises: Array<Promise<any>> = [];
     acceptedFiles.forEach(file => {
-      promises.push(this.props.uploadFile(file, this.props.EFRLibrary, this.props.TaskTitle));
+      promises.push(this.props.uploadFile(file, this.props.EFRLibrary, this.props.TaskTitle,this.props.setMessage));
     });
     Promise.all(promises).then((x) => {
       this.props.getDocuments(this.props.EFRLibrary).then((dox) => {
@@ -65,7 +66,7 @@ export default class FileList extends React.Component<IFileListProps, IFileListS
 
     let file: any = e.target["files"][0];
     console.log("uplopading file");
-    this.props.uploadFile(file, this.props.EFRLibrary, this.props.TaskTitle).then((response) => {
+    this.props.uploadFile(file, this.props.EFRLibrary, this.props.TaskTitle,this.props.setMessage).then((response) => {
       console.log("getting documents");
       this.props.getDocuments(this.props.EFRLibrary).then((dox) => {
         console.log("got documents"+dox.length);

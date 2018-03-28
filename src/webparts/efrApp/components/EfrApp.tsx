@@ -21,6 +21,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     this.state = {
       documentCalloutIframeUrl: "",
       documents: props.documents,
+      message:"",
       taskComments: props.task.EFRComments  // User can only update the comments on this
     };
   }
@@ -90,6 +91,9 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
       console.error(err);
     });
   }
+  private setMessage(newMessage):void{
+    this.setState((current) => ({ ...current, message: newMessage }));
+  }
   private closeWindow(): void {
     this.props.closeWindow();
   }
@@ -150,7 +154,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
     });
   }
   public showHelp(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    debugger;
+    
     window.open(item.data.url,item.data.name,item.data.specs);
   }
   /**
@@ -169,7 +173,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
         title: this.props.uploadFilesHoverText,
         disabled: (this.props.task.EFRCompletedByUser === "Yes" || !this.userIsAssignedTask(this.props.task)),
         onClick: (e) => {
-          debugger;
+          
           var input: any = document.getElementById("TronoxEFRUploadfile");
           input.click();
 
@@ -233,7 +237,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
         key: "helpLinks", name: "Help", icon: "help",
         title: this.props.helpHoverText,
         items: map(this.props.helpLinks,(hl):IContextualMenuItem=>{
-          debugger;
+          
           return{
             key:hl.Id.toString(), // this is the id of the listitem
             href:hl.Url.Url, 
@@ -252,7 +256,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
           <input type="file" id="TronoxEFRUploadfile" style={{ "display": "none" }} onChange={element => {
             let file: any = element.target["files"][0];
             console.log("uplopading file");
-            this.props.uploadFile(file, this.props.task.EFRLibrary, this.props.task.Title).then((response) => {
+            this.props.uploadFile(file, this.props.task.EFRLibrary, this.props.task.Title,this.setMessage.bind(this)).then((response) => {
               console.log("getting documents");
               this.props.getDocuments(this.props.task.EFRLibrary).then((dox) => {
                 console.log("got documents " + dox.length);
@@ -350,7 +354,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
           </div>
           <div dangerouslySetInnerHTML={(this.props.task.EFRCompletedByUser === "Yes") ? this.createSummaryMarkup(this.props.efrFormInstructionsClosed) : this.createSummaryMarkup(this.props.efrFormInstructionsOpen)}>
           </div>
-
+          <div>{this.state.message}</div>
           <FileList
             uploadFile={this.props.uploadFile}
             getDocuments={this.props.getDocuments}
@@ -362,6 +366,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
             documentIframeWidth={this.props.documentIframeWidth}
             enableUpload={this.userIsAssignedTask(this.props.task) && this.props.task.EFRCompletedByUser === "No"}
             dropZoneText={this.props.dropZoneText}
+            setMessage={this.setMessage.bind(this)}
           />
         </div>
       );

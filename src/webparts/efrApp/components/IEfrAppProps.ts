@@ -3,7 +3,7 @@ import { PBCTask, Document,HelpLink } from "../model";
 export interface IEfrAppProps {
   task: PBCTask;
   documents: Array<Document>;
-  uploadFile: (file: any, Library: string, filePrefix: string) => Promise<any>;
+  uploadFile: (file: any, Library: string, filePrefix: string,setMessage:(m)=>void) => Promise<any>;
   getDocuments: (library: string) => Promise<Array<Document>>;
   completeTask: (task: PBCTask) => Promise<any>;
   reopenTask: (task: PBCTask) => Promise<any>;
