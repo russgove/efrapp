@@ -91,7 +91,6 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
           }).catch((err) => {
             debugger;
             alert("There was an error fetching the EFR Libraries List");
-            alert(err.data.responseBody["odata.error"].message.value);
             console.error(err);
             return null;
           });
@@ -180,6 +179,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     return emailAddresses;
   }
   private replaceEmailTokens(formatString: string, task: PBCTask, user: SPUser): string {
+    debugger;
     let newString = formatString.split("~useremail").join(user.email)
       .split("~tasktitle").join(task.Title)
       .split("~taskinformationrequested").join(task.EFRInformationRequested)

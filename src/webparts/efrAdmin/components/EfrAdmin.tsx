@@ -356,6 +356,10 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
           let group = find(siteGroups, (sg => { return sg["Title"] === library["EFRsecurityGroup"]; }));
           let principlaID = group["Id"];
           let roledef = find(roleDefinitions, (rd => { return rd["Name"] === this.props.permissionToGrantToLibraries; }));
+          if (!roledef){
+            this.addMessage("<h1>Role Definition  '" +  this.props.permissionToGrantToLibraries + "' was not found</h1>");
+           
+          }
           let roleDefId = roledef["Id"];
           await list.roleAssignments.add(principlaID, roleDefId).then(() => {
             this.addMessage("granted " + library["EFRsecurityGroup"] + " read access to " + library["Title"]);
@@ -503,7 +507,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         return;
       });
       // manipulate the view's fields
-      debugger;
+    
       await v.view.fields.removeAll().catch((err) => { debugger; });
       await v.view.fields.add("LinkTitle").catch((err) => { debugger; });
       await v.view.fields.add("EFRInformationRequested").catch((err) => { debugger; });
@@ -523,7 +527,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="TRUE" /></OrderBy><Where><Eq><FieldRef Name="EFRVerifiedByAdmin" /><Value Type="Text">No</Value></Eq></Where>'
     }).then(async (v: ViewAddResult) => {
       // manipulate the view's fields
-      debugger;
+ 
       await v.view.fields.removeAll().catch((err) => { debugger; });
       await v.view.fields.add("LinkTitle").catch((err) => { debugger; });
       await v.view.fields.add("EFRInformationRequested").catch((err) => { debugger; });
@@ -547,7 +551,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       DefaultView: true,
       ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="TRUE" /></OrderBy><Where><Eq><FieldRef Name="EFRAssignedTo" /><Value Type="Integer"><UserID Type="Integer" /></Value></Eq></Where>'
     }).then(async (v: ViewAddResult) => {
-      debugger;
+
       await this.AddQuickLaunchItem(window.location.origin + webServerRelativeUrl, "My Tasks", window.location.origin + v.data.ServerRelativeUrl, false);
       // manipulate the view's fields
       await v.view.fields.removeAll().catch((err) => { debugger; });
@@ -573,12 +577,12 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     await taskList.views.getByTitle("All Items").fields.add("EFRAssignedTo").catch((err) => { debugger; });
     await taskList.views.getByTitle("All Items").fields.add("EFRCompletedByUser").catch((err) => { debugger; });
     await taskList.views.getByTitle("All Items").fields.add("EFRVerifiedByAdmin").catch((err) => { debugger; });
-    await taskList.views.getByTitle("All Items").fields.add("EFRDDateCompleted").catch((err) => { debugger; });
+    await taskList.views.getByTitle("All Items").fields.add("EFRDateCompleted").catch((err) => { debugger; });
 
     // create the tasks in the new task list
-    debugger;
+
     for (const task of tasks) {
-      debugger;
+   
       if (task.IsActive !== "No") {
 
         let itemToAdd = {
@@ -629,14 +633,19 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
             let group = find(siteGroups, (sg => { return sg["Title"] === library["EFRsecurityGroup"]; }));
             let principlaID = group["Id"];
             let roledef = find(roleDefinitions, (rd => { return rd["Name"] === this.props.permissionToGrantToTaskList; }));
+            if (!roledef){
+              this.addMessage("<h1>Role Definition  '" +  this.props.permissionToGrantToTaskList + "' was not found</h1>");
+             
+            }
             let roleDefId = roledef["Id"];
             await taskList.roleAssignments.add(principlaID, roleDefId)
               .then(() => {
                 this.addMessage(`Granted group ${library["EFRsecurityGroup"]} access to the task list.`);
+                return;
               })
               .catch(error => {
                 debugger;
-                this.addMessage(`Error granting group ${library["EFRsecurityGroup"]} access to the task list.`);
+                this.addMessage(`<h1>Error granting group ${library["EFRsecurityGroup"]} access to the task list.</h1>`);
                 this.addMessage(error.data.responseBody["odata.error"].message.value);
                 console.error(error);
                 return;
@@ -644,8 +653,12 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
           }
         }
       })
-      .catch(err => {
-        this.addMessage("Error breaking role inheritance on task list");
+      .catch(error => {
+        console.log(error);
+        
+        this.addMessage("<h1>Error breaking role inheritance on task list</h1>");
+        debugger;
+        this.addMessage(error.data.responseBody["odata.error"].message.value);
       });
 
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -784,8 +797,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
           label="PBC Master List"
           onChanged={(e) => {
-            debugger;
-            this.setState((current) => ({ ...current, pbcMasterList: e.text }));
+                   this.setState((current) => ({ ...current, pbcMasterList: e.text }));
           }} />
         <PrimaryButton onClick={this.createSite.bind(this)} title="Create Site">Create Site</PrimaryButton>
 

@@ -229,7 +229,7 @@ public componentWillReceiveProps(nextProps: IFileListProps){
                 selectionMode={SelectionMode.none}
                 columns={[
                   {
-                    key: "title", name: "Role Name",
+                    key: "title", name: "File Name",
                     fieldName: "Role_x0020_Name", minWidth: 1, maxWidth: 200,
                     onRender: this.renderItemTitle.bind(this)
                   },
