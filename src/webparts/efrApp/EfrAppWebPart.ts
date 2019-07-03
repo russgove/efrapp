@@ -2,7 +2,7 @@ import * as React from "react";
 import { PBCTask, Setting } from "./model";
 import * as ReactDom from "react-dom";
 import { Version, UrlQueryParameterCollection } from "@microsoft/sp-core-library";
-import pnp, { EmailProperties, Items, List } from "sp-pnp-js";
+import  {sp, EmailProperties, Items } from "@pnp/sp";
 import { SPUser } from "@microsoft/sp-page-context";
 import {
   BaseClientSideWebPart,
@@ -23,7 +23,6 @@ import { Document, HelpLink } from "./model";
 export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartProps> {
   private reactElement: React.ReactElement<IEfrAppProps>;
   private formComponent: EfrApp;
-  private documentsListName: string;
   private task: PBCTask;
   private documents: Array<Document>;
   private settings: Array<Setting>;
@@ -31,7 +30,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
   public onInit(): Promise<void> {
     return super.onInit().then(_ => {
 
-      pnp.setup({
+      sp.setup({
         spfxContext: this.context,
       });
       return this.loadData();
@@ -59,7 +58,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
 
     }
     // get the seeings list (it has all the email templates)
-    await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.helpLinksListName).items.getAs<Array<HelpLink>>().then((helps => {
+    await sp.site.rootWeb.lists.getByTitle(this.properties.helpLinksListName).items.get<Array<HelpLink>>().then((helps => {
 
       this.helpLinks = helps;
     })).catch((err) => {
@@ -69,7 +68,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       alert(err.data.responseBody["odata.error"].message.value);
     });
 
-    await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.settingsList).items.getAs<Array<Setting>>().then((settingsResponse => {
+    await sp.site.rootWeb.lists.getByTitle(this.properties.settingsList).items.get<Array<Setting>>().then((settingsResponse => {
       this.settings = settingsResponse;
     })).catch((err) => {
       console.error(err);
@@ -77,15 +76,15 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       alert("There was an error fetching the settings");
       alert(err.data.responseBody["odata.error"].message.value);
     });
-    return pnp.sp.web.lists.
+    return sp.web.lists.
       getByTitle(taskListName).
       items.getById(itemid).expand("EFRAssignedTo")
       .expand("EFRAssignedTo")
       // note some test users, like shr-sptio2user do not have an email, so the below will fail 
-      .select("Title,Id,EFRComments,EFRCompletedByUser,EFRLibraryId,EFRInformationRequested,EFRPeriod,EFRDueDate,EFRDateCompleted,EFRAssignedTo/Title,EFRAssignedTo/UserName,EFRAssignedTo/EMail").getAs<PBCTask>()
+      .select("Title,Id,EFRComments,EFRCompletedByUser,EFRLibraryId,EFRInformationRequested,EFRPeriod,EFRDueDate,EFRDateCompleted,EFRAssignedTo/Title,EFRAssignedTo/UserName,EFRAssignedTo/EMail").get<PBCTask>()
       .then(async (task) => {
         this.task = task;
-        this.task.EFRLibrary = await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.EFRLibrariesListName)
+        this.task.EFRLibrary = await sp.site.rootWeb.lists.getByTitle(this.properties.EFRLibrariesListName)
           .items.getById(parseInt(task.EFRLibraryId)).get().then(efrLib => {
             return efrLib.Title;
           }).catch((err) => {
@@ -109,7 +108,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     const updates = {
       "EFRComments": newValue,
     };
-    return pnp.sp.web.lists.getByTitle(this.properties.taskListName).items.getById(taskId).update(updates).catch((err) => {
+    return sp.web.lists.getByTitle(this.properties.taskListName).items.getById(taskId).update(updates).catch((err) => {
       console.error(err);
       alert("There was an error updating this task");
       alert(err.data.responseBody["odata.error"].message.value);
@@ -131,7 +130,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     // small upload
     console.log("uploadfile adding small file");
     setMessage(`Uploading file with name ${fileName} `);
-    return pnp.sp.web.lists.getByTitle(Library).rootFolder.files
+    return sp.web.lists.getByTitle(Library).rootFolder.files
       .add(fileName, file, false) // last param FALSE! cannot allow overwrite
       .then((results) => {
         setMessage(`Uploaded file with name ${fileName} `);
@@ -170,7 +169,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
 
     let emailAddresses: Array<string> = [];
     for (let sharePointGroup of sharePointGroups.split(',')) {
-      await pnp.sp.web.siteGroups.getByName(sharePointGroup.trim()).users.get().then((users) => {
+      await sp.web.siteGroups.getByName(sharePointGroup.trim()).users.get().then((users) => {
 
         for (let user of users) {
           emailAddresses.push(user.Email);
@@ -181,7 +180,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
   }
   private async replaceEmailTokens(formatString: string, task: PBCTask, user: SPUser): Promise<string> {
     debugger;
-    let libraryUrl = await pnp.sp.web.lists
+    let libraryUrl = await sp.web.lists
       .getByTitle(task.EFRLibrary).rootFolder.get()
       .then((library) => {
         debugger;
@@ -203,7 +202,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       .split("~tasklibrarytitle").join(task.EFRLibrary)
       .split("~tasklibraryurl").join(libraryUrl)
       .split("~webtitle").join(this.context.pageContext.web.title)
-      .split("~weburl").join(this.context.pageContext.web.absoluteUrl)
+      .split("~weburl").join(this.context.pageContext.web.absoluteUrl);
 
 
     return newString;
@@ -214,7 +213,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       "EFRCompletedByUser": "Yes",
       "EFRDateCompleted": new Date().toISOString()
     };
-    await pnp.sp.web.lists.getByTitle(this.properties.taskListName).items.getById(task.Id).update(updates)
+    await sp.web.lists.getByTitle(this.properties.taskListName).items.getById(task.Id).update(updates)
       .then(() => {
 
         return;
@@ -252,7 +251,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     let subject = await this.replaceEmailTokens(subjectformat, task, this.context.pageContext.user);
     let bodyformat = find(this.settings, (setting) => { return setting.Title === "Task Completed Email Body"; }).PlainText;
     let body = await this.replaceEmailTokens(bodyformat, task, this.context.pageContext.user);
-    let from = find(this.settings, (setting) => { return setting.Title === "Task Completed Email From"; }).PlainText;
+ //   let from = find(this.settings, (setting) => { return setting.Title === "Task Completed Email From"; }).PlainText;
 
     let emailprops: EmailProperties = {
       To: toAddresses,
@@ -262,7 +261,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       From: this.context.pageContext.user.email,
     };
 
-    await pnp.sp.utility.sendEmail(emailprops)
+    await sp.utility.sendEmail(emailprops)
       .then((x) => {
 
         return;
@@ -284,7 +283,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       "EFRCompletedByUser": "No",
       "EFRDateCompleted": new Date().toISOString()
     };
-    await pnp.sp.web.lists.getByTitle(this.properties.taskListName).items.getById(task.Id).update(updates)
+    await sp.web.lists.getByTitle(this.properties.taskListName).items.getById(task.Id).update(updates)
       .then(() => {
         return;
       }).catch((err) => {
@@ -321,7 +320,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     let subject = await this.replaceEmailTokens(subjectformat, task, this.context.pageContext.user);
     let bodyformat = find(this.settings, (setting) => { return setting.Title === "Task Reopened Email Body"; }).PlainText;
     let body = await this.replaceEmailTokens(bodyformat, task, this.context.pageContext.user);
-    let from = find(this.settings, (setting) => { return setting.Title === "Task Reopened Email From"; }).PlainText;
+   // let from = find(this.settings, (setting) => { return setting.Title === "Task Reopened Email From"; }).PlainText;
 
     let emailprops: EmailProperties = {
       To: toAddresses,
@@ -332,7 +331,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     };
 
 
-    await pnp.sp.utility.sendEmail(emailprops)
+    await sp.utility.sendEmail(emailprops)
       .then((x) => {
 
         return;
@@ -420,7 +419,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
     let docfields = "Id,Title,File/ServerRelativeUrl,File/Length,File/Name,File/MajorVersion,File/MinorVersion";
     let docexpands = "File";
 
-    let command: Items = pnp.sp.web.lists
+    let command: Items = sp.web.lists
       .getByTitle(library)
       .items
       .expand(docexpands)
@@ -466,7 +465,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
    * 
    */
   public fetchDocumentWopiFrameURL(id: number, mode: number, library: string): Promise<string> {
-    return pnp.sp.web.lists.getByTitle(library).items.getById(id).getWopiFrameUrl(mode).then((item) => {
+    return sp.web.lists.getByTitle(library).items.getById(id).getWopiFrameUrl(mode).then((item) => {
       return item;
     });
   }

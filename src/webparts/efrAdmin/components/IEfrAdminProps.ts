@@ -1,6 +1,7 @@
 import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
 export interface IEfrAdminProps {
   webPartXml: string; // the webpart to be added to the EFRTaskEdit form 
+  adminWebPartXml: string; // the webpart to be added to the AdminEdit form 
   templateName:string;
   EFRLibrariesListName:string;
   EFRFoldersListName:string;

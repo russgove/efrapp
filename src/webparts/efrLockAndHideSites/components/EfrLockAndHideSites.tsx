@@ -4,7 +4,7 @@ import { IEfrLockAndHideSitesProps } from './IEfrLockAndHideSitesProps';
 
 import * as moment from "moment";
 
-import {    ActionButton } from "office-ui-fabric-react/lib/Button";
+import { ActionButton } from "office-ui-fabric-react/lib/Button";
 
 import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
 
@@ -13,7 +13,7 @@ import { Checkbox } from "office-ui-fabric-react/lib/Checkbox";
 // switch to fabric  ComboBox on next upgrade
 // let Select = require("react-select") as any;
 //import "react-select/dist/react-select.css";
-import { DetailsList,  IColumn, SelectionMode } from "office-ui-fabric-react/lib/DetailsList";
+import { DetailsList, IColumn, SelectionMode } from "office-ui-fabric-react/lib/DetailsList";
 
 
 

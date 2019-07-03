@@ -6,7 +6,7 @@ import {
   IPropertyPaneConfiguration,
   PropertyPaneTextField
 } from '@microsoft/sp-webpart-base';
-import pnp, {     Web } from "sp-pnp-js";
+import  {  sp,   Web } from "@pnp/sp";
 import * as strings from 'EfrLockAndHideSitesWebPartStrings';
 import EfrLockAndHideSites from './components/EfrLockAndHideSites';
 import { IEfrLockAndHideSitesProps } from './components/IEfrLockAndHideSitesProps';
@@ -24,7 +24,7 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
   public onInit(): Promise<void> {
     return super.onInit().then(_ => {
 
-      pnp.setup({
+      sp.setup({
         spfxContext: this.context,
       });
 
@@ -33,7 +33,7 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
   }
   public async loadData(): Promise<any> {
     let webInfos: Array<{ Title: string, ServerRelativeUrl: string, LastItemModifiedDate: string, Id: string }>;
-    await pnp.sp.site.rootWeb.webinfos.get().then((webInfosResults) => {
+    await sp.site.rootWeb.webinfos.get().then((webInfosResults) => {
       webInfos = webInfosResults;
     }).catch(err => {
       debugger;
@@ -42,7 +42,7 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
       alert(err.data.responseBody["odata.error"].message.value);
     });
 
-    await pnp.sp.site.rootWeb.navigation.topNavigationBar.get().then((topNavigationBarResults) => {
+    await sp.site.rootWeb.navigation.topNavigationBar.get().then((topNavigationBarResults) => {
       debugger;
       this.topNav = topNavigationBarResults;
     }).catch(err => {
@@ -53,7 +53,7 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
     });
     let securityGroupTotest: string; // this is just the name of the group
     // get the item in the libraryList to see the securtitygroup it uses. 
-    await pnp.sp.web.lists.getByTitle(this.properties.EFRLibariesList)
+    await sp.web.lists.getByTitle(this.properties.EFRLibariesList)
       .items.filter("Title eq '" + this.properties.libraryToTestForLockedSite + "'").get().then(libraryItem => {
         console.log("security group to test is " + libraryItem[0].EFRsecurityGroup);
         securityGroupTotest = libraryItem[0].EFRsecurityGroup;
@@ -64,7 +64,7 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
         alert(err.data.responseBody["odata.error"].message.value);
       });
     let roleDefinitionId: number;
-    await pnp.sp.web.roleDefinitions.getByName(this.properties.permissionTotestForLockedSite).get().then(roleDef => {
+    await sp.web.roleDefinitions.getByName(this.properties.permissionTotestForLockedSite).get().then(roleDef => {
       console.log("role defintion to  " + roleDef.Id);
       roleDefinitionId = roleDef.Id;
     }).catch(err => {
@@ -75,7 +75,7 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
     });
     let securityGroupTotestPrinciipalId: number;
     // get the principalId for that security group/
-    await pnp.sp.web.siteGroups.getByName(securityGroupTotest)
+    await sp.web.siteGroups.getByName(securityGroupTotest)
       .get().then(spGroup => {
         securityGroupTotestPrinciipalId = spGroup.Id;
       }).catch(err => {
@@ -88,7 +88,7 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
     for (let webInfo of webInfos) {
 
       let subweb: Web;
-      await pnp.sp.site.openWebById(webInfo.Id).then(sw => {
+      await sp.site.openWebById(webInfo.Id).then(sw => {
         subweb = sw.web;
       }).catch(err => {
         debugger;
@@ -132,19 +132,19 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
 
 
   }
-  public removeSiteFromTopNav(navItem: topNavItem): Promise<any> {
-    debugger;
-    return pnp.sp.site.rootWeb.navigation.topNavigationBar.getById(navItem.Id).update({ IsVisible: false }).then((results) => {
-      debugger;
-    }).catch(err => {
-      debugger;
-    });
-  }
+  // public removeSiteFromTopNav(navItem: topNavItem): Promise<any> {
+  //   debugger;
+  //   return pnp.sp.site.rootWeb.navigation.topNavigationBar.getById(navItem.Id).Update({ IsVisible: false }).then((results) => {
+  //     debugger;
+  //   }).catch(err => {
+  //     debugger;
+  //   });
+  // }
   public async lockSite(web: efrWeb): Promise<any> {
     debugger;
     // the roledefinition top replace witj 
     let replacementRoleDefinitionId: number;
-    await pnp.sp.web.roleDefinitions.getByName(this.properties.permissionToReplaceWith).get().then(roleDef => {
+    await sp.web.roleDefinitions.getByName(this.properties.permissionToReplaceWith).get().then(roleDef => {
       console.log("role defintion to  " + roleDef.Id);
       replacementRoleDefinitionId = roleDef.Id;
     }).catch(err => {
@@ -154,14 +154,14 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
       alert(err.data.responseBody["odata.error"].message.value);
     });
     let libs: Array<any>;
-    await pnp.sp.web.lists.getByTitle(this.properties.EFRLibariesList).items.get().then(results => {
+    await sp.web.lists.getByTitle(this.properties.EFRLibariesList).items.get().then(results => {
       libs = results;
     }).catch((err) => {
       console.error(err);
       alert("error loading list of libraries");
     });
     let subweb: Web;
-    await pnp.sp.site.openWebById(web.id).then(sw => {
+    await sp.site.openWebById(web.id).then(sw => {
       subweb = sw.web;
     }).catch(err => {
       debugger;
@@ -173,7 +173,7 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
       let secGroup = lib.EFRsecurityGroup;
       let principalId: number;
       // get the grouip assiciated with this library
-      await pnp.sp.web.siteGroups.getByName(secGroup).get().then((sg) => {
+      await sp.web.siteGroups.getByName(secGroup).get().then((sg) => {
         principalId = sg.Id;
       }).catch((err) => {
         debugger;
@@ -229,7 +229,7 @@ export default class EfrLockAndHideSitesWebPart extends BaseClientSideWebPart<IE
       {
         efrWebs: this.efrWebs,
         topNav: this.topNav,
-        removeSiteFromTopNav: this.removeSiteFromTopNav.bind(this),
+        removeSiteFromTopNav:null,// this.removeSiteFromTopNav.bind(this),
         lockSite: this.lockSite.bind(this)
       }
     );

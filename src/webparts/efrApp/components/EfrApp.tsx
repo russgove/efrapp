@@ -7,7 +7,7 @@ import { CompoundButton, } from "office-ui-fabric-react/lib/Button";
 //import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { TagPicker, ITag } from "office-ui-fabric-react/lib/Pickers";
 import { Label } from "office-ui-fabric-react/lib/Label";
-import { PBCTask,HelpLink } from "../model";
+import { PBCTask } from "../model";
 import FileList from "./FileList";
 import { IContextualMenuItem } from "office-ui-fabric-react/lib/ContextualMenu";
 import { CommandBar } from "office-ui-fabric-react/lib/CommandBar";
@@ -246,7 +246,7 @@ export default class EfrApp extends React.Component<IEfrAppProps, IEfrAppState> 
             name:hl.Title,
             target:hl.Target
 
-          }
+          };
         })
       }
     ];

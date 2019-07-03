@@ -10,14 +10,16 @@ import { Dropdown } from "office-ui-fabric-react/lib/Dropdown";
 
 //import { load, exec, toArray } from "../../JsomHelpers"
 import { TextField } from "office-ui-fabric-react/lib/TextField";
-import pnp, {
+import {
+  sp,
   WebAddResult, Web,
   ContextInfo, List, ViewAddResult
-} from "sp-pnp-js";
+} from "@pnp/sp";
 
 
 
 import { find, map } from "lodash";
+
 // use jsom to add webpart to editform
 require('sp-init');
 require('microsoft-ajax');
@@ -102,7 +104,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         reject();
       });
     });
- 
+
     let itemsToDelete = [];
     let itemCount = ql.get_count();
     for (let x = 0; x < itemCount; x++) {
@@ -123,12 +125,12 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         reject();
       });
     });
-  
+
 
   }
 
   public async fixUpLeftNav(webUrl: string, homeUrl: string) {
-   
+
     await this.AddQuickLaunchItem(webUrl, "EFR Home", homeUrl, true);
     await this.RemoveQuickLaunchItem(webUrl, ["Pages", "Documents"]);
 
@@ -189,6 +191,98 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       });
     });
   }
+  /**
+   *  Adds a custom webpart to the edit form located at editformUrl
+   * 
+   * @param {string} webRelativeUrl -- The web containing the list
+   * @param {any} editformUrl -- the url of the editform page
+   * @param {string} webPartXml  -- the xml for the webpart to add
+   * @memberof EfrAdmin
+   */
+  public async AddAdminEditForm(newWeb: Web, taskList: List,taskListId:string, taskListName: string, webServerRelativeUrl: string, webRelativeUrl: string, adminWebPartXml: string) {
+
+   debugger;
+    let listUrl = await taskList.rootFolder.serverRelativeUrl.get();
+    let listFullUrl = document.location.protocol+"//"+
+    document.location.hostname+"/"+listUrl;
+    
+    debugger;
+    let editformUrl: string = "";
+    let form = await taskList.rootFolder
+      .files
+      .addTemplateFile(listUrl + "/AdminEdit.aspx", 2).then((result) => { // 2 is a form page, 0 is a webpart page, 1 is a wiki page
+        editformUrl = result.data.ServerRelativeUrl;
+        //  Neeed to figure how  to use this let lwpm = result.file.getLimitedWebPartManager();
+      }).catch((err) => {
+        debugger;
+        this.addMessage("<h1>error adding admin edit form</h1>");
+        console.log(err);
+        this.addMessage(err.data.responseBody["odata.error"].message.value);
+      
+      });
+    debugger;
+    const clientContext: SP.ClientContext = new SP.ClientContext(webRelativeUrl);
+    var oFile = clientContext.get_web().getFileByServerRelativeUrl(editformUrl);
+    var limitedWebPartManager = oFile.getLimitedWebPartManager(SP.WebParts.PersonalizationScope.shared);
+    let webparts = limitedWebPartManager.get_webParts();
+    clientContext.load(webparts, 'Include(WebPart)');
+    clientContext.load(limitedWebPartManager);
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        resolve();
+      }, (err) => {
+        this.addMessage("<h1>error getting webpartmanager on adminedit page</h1>");
+        console.log(err);
+        this.addMessage(err.data.responseBody["odata.error"].message.value);
+        reject();
+      });
+    });
+    // let originalWebPartDef = webparts.get_item(0);
+    // let originalWebPart = originalWebPartDef.get_webPart();
+    // originalWebPart.set_hidden(true);
+    // originalWebPartDef.saveWebPartChanges();
+    // await new Promise((resolve, reject) => {
+    //   clientContext.executeQueryAsync((x) => {
+    //     console.log("the webpart was hidden");
+    //     resolve();
+    //   }, (error) => {
+    //     console.log(error);
+    //     reject();
+    //   });
+    // });
+    debugger;
+    let webpartXml=adminWebPartXml.replace(/__LISTURL__/g, listFullUrl);
+     webpartXml=webpartXml.replace(/__LISTID__/g, taskListId); //{5D85429B-96FD-4E2F-ACDF-A586B25A22F1}
+    let oWebPartDefinition = limitedWebPartManager.importWebPart(webpartXml);
+    let oWebPart = oWebPartDefinition.get_webPart();
+    debugger;
+    limitedWebPartManager.addWebPart(oWebPart, 'Main', 1);
+
+    clientContext.load(oWebPart);
+    debugger;
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        console.log("the new webpart was added");
+        debugger;
+        resolve();
+      }, (err) => {
+        debugger;
+        this.addMessage("<h1>error adding adminedit webpart</h1>");
+        console.log(err);
+        this.addMessage(err.data.responseBody["odata.error"].message.value);
+        reject();
+      });
+    });
+
+    // form created now add a custom action for it
+    taskList.userCustomActions.add({
+      "Location": "EditControlBlock",
+      "Title": "Admin Edit",
+      "Url": listUrl + "/AdminEdit.aspx?ID={ItemId}",
+      "Sequence": "1004",
+      "Rights": ({ "High": "0", "Low": "2048" }) as any
+    });
+  }
 
 
   /**
@@ -217,11 +311,11 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
 
     this.addMessage("CreatingSite");
-    await pnp.sp.site.getContextInfo().then((context: ContextInfo) => {
+    await sp.site.getContextInfo().then((context: ContextInfo) => {
       contextInfo = context;
     });
     // create the site
-    await pnp.sp.web.webs.add(this.state.siteName, this.state.siteName, this.state.siteName, this.props.templateName).then((war: WebAddResult) => {
+    await sp.web.webs.add(this.state.siteName, this.state.siteName, this.state.siteName, this.props.templateName).then((war: WebAddResult) => {
       this.addMessage("CreatedSite");
       // show the response from the server when adding the web
       webServerRelativeUrl = war.data.ServerRelativeUrl;
@@ -237,11 +331,11 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     });
 
     await this.SetWebToUseSharedNavigation(webServerRelativeUrl);
-   
+
     await this.fixUpLeftNav(webServerRelativeUrl, this.props.siteUrl);
     // now get  the list of libraries we need to create on the new site,
 
-    await pnp.sp.web.lists.getByTitle(this.props.EFRLibrariesListName).items
+    await sp.web.lists.getByTitle(this.props.EFRLibrariesListName).items
       //   .top(2)
       .get().then((libraries) => {
         this.addMessage("got list of libraries");
@@ -266,7 +360,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     //   return null;
     // });
     // get the role definitions
-    await pnp.sp.web.roleDefinitions.get().then((roleDefs) => {
+    await sp.web.roleDefinitions.get().then((roleDefs) => {
       this.addMessage("got roledefinitions");
       roleDefinitions = roleDefs;
       return;
@@ -278,7 +372,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       return;
     });
     // get the site Groups
-    await pnp.sp.web.siteGroups.get().then((sg) => {
+    await sp.web.siteGroups.get().then((sg) => {
       this.addMessage("got Site Groups");
       siteGroups = sg;
       return;
@@ -356,9 +450,9 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
           let group = find(siteGroups, (sg => { return sg["Title"] === library["EFRsecurityGroup"]; }));
           let principlaID = group["Id"];
           let roledef = find(roleDefinitions, (rd => { return rd["Name"] === this.props.permissionToGrantToLibraries; }));
-          if (!roledef){
-            this.addMessage("<h1>Role Definition  '" +  this.props.permissionToGrantToLibraries + "' was not found</h1>");
-           
+          if (!roledef) {
+            this.addMessage("<h1>Role Definition  '" + this.props.permissionToGrantToLibraries + "' was not found</h1>");
+
           }
           let roleDefId = roledef["Id"];
           await list.roleAssignments.add(principlaID, roleDefId).then(() => {
@@ -410,7 +504,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
     }
     // get the master list of tasks, Either PBCMaster or PBCMaster YearEnd from the rootweb
-    await pnp.sp.web.lists.getByTitle(this.state.pbcMasterList).items.expand("EFRLibrary").select("*,EFRLibrary/Title")
+    await sp.web.lists.getByTitle(this.state.pbcMasterList).items.expand("EFRLibrary").select("*,EFRLibrary/Title")
       .top(this.props.PBCMaximumTasks)
       .get().then((efrtasks) => {
         this.addMessage("got PBC MASTER list");
@@ -487,7 +581,10 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       console.error(error);
       return;
     });
-  
+    // add the admin editforrm
+    debugger;
+    await this.AddAdminEditForm(newWeb, taskList, taskListId, "EFRTasks", webServerRelativeUrl, webServerRelativeUrl, this.props.adminWebPartXml);
+
     //add the default view to show only open items assigned to me sorted bt date descening
     await taskList.views.add("My Open Tasks", false, {
       RowLimit: 10,
@@ -507,7 +604,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
         return;
       });
       // manipulate the view's fields
-    
+
       await v.view.fields.removeAll().catch((err) => { debugger; });
       await v.view.fields.add("LinkTitle").catch((err) => { debugger; });
       await v.view.fields.add("EFRInformationRequested").catch((err) => { debugger; });
@@ -527,7 +624,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       ViewQuery: '<OrderBy><FieldRef Name="EFRDueDate" Ascending="TRUE" /></OrderBy><Where><Eq><FieldRef Name="EFRVerifiedByAdmin" /><Value Type="Text">No</Value></Eq></Where>'
     }).then(async (v: ViewAddResult) => {
       // manipulate the view's fields
- 
+
       await v.view.fields.removeAll().catch((err) => { debugger; });
       await v.view.fields.add("LinkTitle").catch((err) => { debugger; });
       await v.view.fields.add("EFRInformationRequested").catch((err) => { debugger; });
@@ -535,7 +632,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
       await v.view.fields.add("EFRDueDate").catch((err) => { debugger; });
       await v.view.fields.add("EFRLibrary").catch((err) => { debugger; });
-     
+
       await v.view.fields.add("EFRAssignedTo").catch((err) => { debugger; });
       await v.view.fields.add("EFRCompletedByUser").catch((err) => { debugger; });
       this.addMessage("Added All  Open Tasks View");
@@ -558,11 +655,11 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       await v.view.fields.add("LinkTitle").catch((err) => { debugger; });
       await v.view.fields.add("EFRInformationRequested").catch((err) => { debugger; });
 
-       await v.view.fields.add("EFRPeriod").catch((err) => { debugger; });
+      await v.view.fields.add("EFRPeriod").catch((err) => { debugger; });
 
       await v.view.fields.add("EFRDueDate").catch((err) => { debugger; });
       await v.view.fields.add("EFRLibrary").catch((err) => { debugger; });
-     
+
       await v.view.fields.add("EFRAssignedTo").catch((err) => { debugger; });
       await v.view.fields.add("EFRCompletedByUser").catch((err) => { debugger; });
 
@@ -582,7 +679,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     // create the tasks in the new task list
 
     for (const task of tasks) {
-   
+
       if (task.IsActive !== "No") {
 
         let itemToAdd = {
@@ -633,9 +730,9 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
             let group = find(siteGroups, (sg => { return sg["Title"] === library["EFRsecurityGroup"]; }));
             let principlaID = group["Id"];
             let roledef = find(roleDefinitions, (rd => { return rd["Name"] === this.props.permissionToGrantToTaskList; }));
-            if (!roledef){
-              this.addMessage("<h1>Role Definition  '" +  this.props.permissionToGrantToTaskList + "' was not found</h1>");
-             
+            if (!roledef) {
+              this.addMessage("<h1>Role Definition  '" + this.props.permissionToGrantToTaskList + "' was not found</h1>");
+
             }
             let roleDefId = roledef["Id"];
             await taskList.roleAssignments.add(principlaID, roleDefId)
@@ -655,7 +752,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
       })
       .catch(error => {
         console.log(error);
-        
+
         this.addMessage("<h1>Error breaking role inheritance on task list</h1>");
         debugger;
         this.addMessage(error.data.responseBody["odata.error"].message.value);
@@ -797,7 +894,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
 
           label="PBC Master List"
           onChanged={(e) => {
-                   this.setState((current) => ({ ...current, pbcMasterList: e.text }));
+            this.setState((current) => ({ ...current, pbcMasterList: e.text }));
           }} />
         <PrimaryButton onClick={this.createSite.bind(this)} title="Create Site">Create Site</PrimaryButton>
 

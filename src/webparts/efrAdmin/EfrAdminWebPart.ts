@@ -11,10 +11,11 @@ import * as strings from 'EfrAdminWebPartStrings';
 
 import EfrAdmin from './components/EfrAdmin';
 import { IEfrAdminProps } from './components/IEfrAdminProps';
-import pnp from "sp-pnp-js";
+import {sp} from "@pnp/sp";
 
 export interface IEfrAdminWebPartProps {
   webPartXml: string;
+  adminWebPartXml: string;
   templateName:string; // the template used to create subsites
   EFRLibrariesListName:string; // the list of libraries to create in each subsite
   EFRFoldersListName:string; // the list of folders to create in each library
@@ -30,7 +31,7 @@ export interface IEfrAdminWebPartProps {
 export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebPartProps> {
   public onInit(): Promise<void> {
     return super.onInit().then(_ => {
-      pnp.setup({
+      sp.setup({
         spfxContext: this.context,
       });
       return;
@@ -41,6 +42,7 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
     const element: React.ReactElement<IEfrAdminProps> = React.createElement(
       EfrAdmin,
       {
+        adminWebPartXml: this.properties.adminWebPartXml,
         webPartXml: this.properties.webPartXml,
         templateName:this.properties.templateName,
         EFRLibrariesListName:this.properties.EFRLibrariesListName,
