@@ -520,7 +520,7 @@ export default class EfrAdmin extends React.Component<IEfrAdminProps, IEfrAdminS
     //  create the task list in the site
     this.addMessage("Creating taskList ");
 
-    await newWeb.lists.add("EFRTasks", "EFRTasks", 100, true).then(async (listResponse) => {
+    await newWeb.lists.add("EFRTasks", "EFRTasks", 100, true,{"EnableAttachments":false}).then(async (listResponse) => {
       this.addMessage("Created List EFRTasks ");
       taskList = listResponse.list;
       taskListId = listResponse.data.Id;

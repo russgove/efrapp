@@ -113,6 +113,10 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
                   label: "The xml of the wabart to be added to the task edit form"
                  
                 }),
+                PropertyPaneTextField("adminWebPartXml", {
+                  label: "The xml of the wabart to be added to the task edit form"
+                 
+                }),
                 PropertyPaneTextField("permissionToGrantToLibraries", {
                   label: "The Permission to grant to the EFR Libraries (Content Authors without delete or modify)"
                 }),
