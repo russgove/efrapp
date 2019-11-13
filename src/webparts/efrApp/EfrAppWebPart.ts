@@ -65,7 +65,7 @@ export default class EfrAppWebPart extends BaseClientSideWebPart<IEfrAppWebPartP
       console.error(err);
       debugger;
       alert("There was an error fetching the helplinks");
-      alert(err.data.responseBody["odata.error"].message.value);
+      ///alert(err.data.responseBody["odata.error"].message.value); breaks if odata.error is not there. Never do this again without testing for pesence!!!!
     });
 
     await sp.site.rootWeb.lists.getByTitle(this.properties.settingsList).items.get<Array<Setting>>().then((settingsResponse => {
