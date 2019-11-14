@@ -1,4 +1,5 @@
 import * as React from "react";
+import "@pnp/polyfill-ie11";
 import { PBCTask, Setting } from "./model";
 import * as ReactDom from "react-dom";
 import { Version, UrlQueryParameterCollection } from "@microsoft/sp-core-library";

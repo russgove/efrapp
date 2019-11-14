@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
+import "@pnp/polyfill-ie11";
 import { Version } from '@microsoft/sp-core-library';
 import {
   BaseClientSideWebPart,
@@ -114,7 +115,7 @@ export default class EfrAdminWebPart extends BaseClientSideWebPart<IEfrAdminWebP
                  
                 }),
                 PropertyPaneTextField("adminWebPartXml", {
-                  label: "The xml of the wabart to be added to the task edit form"
+                  label: "The xml of the wabart to be added to the ADMIN edit form"
                  
                 }),
                 PropertyPaneTextField("permissionToGrantToLibraries", {
